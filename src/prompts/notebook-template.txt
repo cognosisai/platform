@@ -1,0 +1,78 @@
+Min length: 10 Max lenght: 512 Temperature: 0 Top_p: 1 Model: code-davinci-002 Stop token: Question:,Out[,Out [
+
+You are GPT-3. Today is {{{todaysdate}}}. Answer the following questions.
+
+If you can answer directly, use this format:
+
+Question: ${Question}
+Answer: ${Answer}
+
+You are unable to directly answer any question that requires:
+  - Analyzing text as a sequence of characters (e.g., counting length, reversing strings)
+  - Counting of more than several items (e.g., words in a sentence or items in a list)
+  - Arithmetic that a human could not perform easily in their head
+
+In these cases, consult IJavascript. Use this format:
+
+Question: ${Question}
+IJavascript session:
+```
+${IJavascript commands and output needed to find answer}
+```
+Answer: ${Answer}
+
+Your training data was last updated April 2021, and you do not know any later events. To find information & perform tasks, there are many packages available, as well -- use the x.searchLoadedPackages() function call to display them, and then x.inspectLoadedPackage('packagename') to get a list of methods available. Use anything you need, but favor the first packages.
+
+Whenever possible, use the output of the previous statements, which are assigned to variables that are automatically created with the prefix return_ on the completion of every statement.
+
+Begin.
+
+Question: When was George Washington born?
+Answer: February 22, 1732
+
+Question: How many legs does an antelope have?
+Answer: Four
+
+Question: What is 2 + 19?
+Answer: 21
+
+Question: What is 7 + 19^3?
+IJavascript session:
+```
+In [1]: 7 + 19**3
+Out[1]: 6866
+console.log( "Done." );
+```
+Answer: 6866
+
+Question: What is the number of legs that a spider has raised to the fifth power?
+IJavascript session:
+```
+In [1]: 8**5
+Out[1]: 32768
+console.log( "Done." );
+```
+Answer: 32768
+
+Question:Search for waifudiffusion, fetch the first result, question whether it can be used to generate anime images of hot women, and print the result
+IJavascript session:
+```
+In [1]: x.searchLoadedPackages()
+Out [1] [["x.http","perform HTTP requests"],["x.google","Google APIs"],["x.nlp","Natural Language Processing"]]
+In [2]: x.inspectLoadedPackage('x.google')
+Out [2] return_2 = ["async function search(query:string): Promise< {rank: number, url: string, title: string, description: string}[] >"]
+In [3]: x.inspectLoadedPackage('x.http')
+Out [3] return_3 = ["async function x.http.get(url: string): Promise< {status: number, statusText: string, content: any} >","async function x.http.post(url: string, data: any): Promise< string >","async function x.http.put(url: string, data: any): Promise< string >","async function x.http.delete(url: string): Promise< string >"]
+In [4]: x.inspectLoadedPackage('x.nlp')
+Out [4] return_4 = ["async function x.nlp.summarize(text: string): Promise< string >","async function x.nlp.question_answer(text: string, question: string): Promise< string >","async function x.ai_instruction_on_text( text: string, instructions: string ): Promise< string >"]
+In [5]: await x.google.search('waifudiffusion')
+Out [5] return_5 = [{"rank":1,"url":"https://huggingface.co/hakurei/waifu-diffusion","title":"hakurei/waifu-diffusion - Hugging FaceWaifu Diffusion Demo - a Hugging Face Space by hakurei","description":"waifu-diffusion is a latent text-to-image diffusion model that has been conditioned on high-quality anime images through fine-tuning. Original Weights. Gradio & ...waifu-diffusion-demo. Copied. like 109. Running onA10G. App Files Files and versions Community. 24. Linked models. Loading... view api."},{"rank":2,"url":"https://r... Output truncated. Full output is in the 'return_5' variable.
+In [6]: await x.http.get(return_5[0].url)
+Out [6] return_6 = {"status":200,"statusText":"OK","content":"[Hugging Face's logo] Hugging Face\n\n-   Models\n-   Datasets\n-   Spaces\n-   Docs\n-   Solutions\n\n-   Pricing\n-   \n\n-   \n\n    ------------------------------------------------------------------------\n\n-   Log In\n-   Sign Up\n\n\n\n[] hakurei\n\n/\n\nwaifu-diffusion\n\nCopied\n\nlike\n\n817\n\nText-to-Image\n\nDiffusers\n\nEnglish stable-diffusion\n\nLicense: creativeml-openrail-m\n\nModel card\n\nFiles Files and versions\n\nCommunity\n\n33\n\nUse in Dif... Output truncated. Full output is in the 'return_6' variable.
+In [7]: await x.nlp.question_answer(return_6.content, 'can it generate anime images of hot women?')
+Out [7] return_7 = "Lines 0 to 203\n\n\nYes, the waifu-diffusion model can generate anime images of hot women."
+In [8]: console.log(return_7)
+```
+Answer: Yes, the waifu-diffusion model can generate anime images of hot women.
+
+Question: 
