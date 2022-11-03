@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Configuration, OpenAIApi } from "openai";
+import { Configuration, OpenAIApi } from 'openai';
 import fs from 'fs';
 // Import json5
 
@@ -28,117 +28,171 @@ import fs from 'fs';
  * @param {boolean|null} removeEndSequence Remove end sequence from generated text (don't touch unless you know what you're doing)
  * @returns {Promise<string>} Generated text
  */
- export async function generateText(modelName: string,
-    text: string, 
-    token: string, 
-    minLength: number = 10,
-    maxLength: number = 20,
-    lengthNoInput: boolean | null = null,
-    endSequence: string | null = null,
-    removeInput: boolean = true,
-    doSample: boolean | null, 
-    numBeams: number | null,
-    earlyStopping: boolean | null,
-    noRepeatNgramSize: number | null,
-    numReturnSequences: number | null,
-    topK: number | null,
-    topP: number | null,
-    temperature: number | null,
-    repetitionPenalty: number | null,
-    lengthPenalty: number | null,
-    badWords: boolean | null,
-    removeEndSequence: boolean | null,
-    ) {
-    const response = await axios.post(
-      `https://api.nlpcloud.io/v1/gpu/${modelName}/generation`,
-      {
-        text: text,
-        min_length: minLength,
-        max_length: maxLength,
-        length_no_input: lengthNoInput,
-        end_sequence: endSequence,
-        remove_input: removeInput,
-        do_sample: doSample,
-        num_beams: numBeams,
-        early_stopping: earlyStopping,
-        no_repeat_ngram_size: noRepeatNgramSize,
-        num_return_sequences: numReturnSequences,
-        topk: topK,
-        topp: topP,
-        temperature: temperature,
-        repetition_penalty: repetitionPenalty,
-        length_penalty: lengthPenalty,
-        bad_words: badWords,
-        remove_end_sequence: removeEndSequence,
-      },
-      {
-        headers: {
-          Authorization: `Token ${token}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-    return response.data.generated_text;
-  }
-  
-  
-  /**
-   * Generates text using OpenAI's text completion API.
-   * @param {string} text The text to use as a prompt.
-   * @param {string} apikey The API key to use.
-   * @param {number} min_length The minimum length of the generated text.
-   * @param {number} max_length The maximum length of the generated text.
-   * @param {number} temperature The temperature parameter for the text generation.
-   * @param {number} top_p The top_p parameter for the text generation.
-   * @returns {Promise<string>} The generated text.
-   */
-  export async function generateTextOpenAI( text: string, apikey: string, min_length: number, max_length: number, temperature: number, top_p: number, model : "text-davinci-002" | "code-davinci-002" | "text-curie-001" = "text-davinci-002", stopToken: string | string[] | null = null ): Promise< string >
-  {
-    const config = new Configuration({
-      apiKey: apikey,
-    });
-    const openai = new OpenAIApi(config);
-    const response = await openai.createCompletion( {"model": model, "prompt": text, "max_tokens": max_length, "temperature": temperature, "top_p": top_p, "frequency_penalty": 1.0, "presence_penalty": 1.0, stop: stopToken} );
-    return( response.data.choices![0].text! );
-  }
-  
-  
-  export async function retryGenerateTextOpenAI( text: string, apikey: string, min_length: number, max_length: number, temperature: number, top_p: number, model : "text-davinci-002" | "code-davinci-002" | "text-curie-001" = "text-davinci-002", stopToken: string | string[] | null = null, delaySeconds = 1 ): Promise< string >
-  {
-    // Log everything to log/<timestamp>.log
-    const log = fs.createWriteStream( `log/${new Date().toISOString()}.log`, { flags: 'a' } );
-    log.write(`Min length: ${min_length} Max lenght: ${max_length} Temperature: ${temperature} Top_p: ${top_p} Model: ${model} Stop token: ${stopToken}\n`);
-    log.write(`\n${text}\n`);
-    console.log(`Min length: ${min_length} Max lenght: ${max_length} Temperature: ${temperature} Top_p: ${top_p} Model: ${model} Stop token: ${stopToken}`);
-  
-    await new Promise( resolve => setTimeout( resolve, Math.random() * 1500 ) );
-  
-    try
+export async function generateText(
+  modelName: string,
+  text: string,
+  token: string,
+  minLength: number = 10,
+  maxLength: number = 20,
+  lengthNoInput: boolean | null = null,
+  endSequence: string | null = null,
+  removeInput: boolean = true,
+  doSample: boolean | null,
+  numBeams: number | null,
+  earlyStopping: boolean | null,
+  noRepeatNgramSize: number | null,
+  numReturnSequences: number | null,
+  topK: number | null,
+  topP: number | null,
+  temperature: number | null,
+  repetitionPenalty: number | null,
+  lengthPenalty: number | null,
+  badWords: boolean | null,
+  removeEndSequence: boolean | null
+) {
+  const response = await axios.post(
+    `https://api.nlpcloud.io/v1/gpu/${modelName}/generation`,
     {
-      let result = await generateTextOpenAI( text, apikey, min_length, max_length, temperature, top_p, model, stopToken );
-      console.log( `Result: ${result.length} retruend` );
-      log.write(`\n=======================================\n${result}\n`);
-      log.close();
-      return result;
-    }
-    catch( error:any )
+      text: text,
+      min_length: minLength,
+      max_length: maxLength,
+      length_no_input: lengthNoInput,
+      end_sequence: endSequence,
+      remove_input: removeInput,
+      do_sample: doSample,
+      num_beams: numBeams,
+      early_stopping: earlyStopping,
+      no_repeat_ngram_size: noRepeatNgramSize,
+      num_return_sequences: numReturnSequences,
+      topk: topK,
+      topp: topP,
+      temperature: temperature,
+      repetition_penalty: repetitionPenalty,
+      length_penalty: lengthPenalty,
+      bad_words: badWords,
+      remove_end_sequence: removeEndSequence
+    },
     {
-      log.write(`\n=======================================\n${error}\n`);
-      log.write(`\n=======================================\n${JSON.stringify(error.response.data)}\n`);
-      log.close();
-  
-      if ( error.response && error.response.status == 429 )
-      {
-        let delay = Math.random() * 1000 * delaySeconds;
-        console.log(`429. Waiting ${delay} ms and retrying.`);
-        // Retry
-        // Wait randomly up to 10 seconds
-        await new Promise( resolve => setTimeout( resolve, delay ) );
-        return await retryGenerateTextOpenAI( text, apikey, min_length, max_length, temperature, top_p, model, stopToken, delaySeconds ^ 2 );
+      headers: {
+        Authorization: `Token ${token}`,
+        'Content-Type': 'application/json'
       }
     }
-  
-    throw new Error( "Failed to generate text with non-temporary error" );
-  }
-  
+  );
+  return response.data.generated_text;
+}
 
+/**
+ * Generates text using OpenAI's text completion API.
+ * @param {string} text The text to use as a prompt.
+ * @param {string} apikey The API key to use.
+ * @param {number} min_length The minimum length of the generated text.
+ * @param {number} max_length The maximum length of the generated text.
+ * @param {number} temperature The temperature parameter for the text generation.
+ * @param {number} top_p The top_p parameter for the text generation.
+ * @returns {Promise<string>} The generated text.
+ */
+export async function generateTextOpenAI(
+  text: string,
+  apikey: string,
+  min_length: number,
+  max_length: number,
+  temperature: number,
+  top_p: number,
+  model:
+    | 'text-davinci-002'
+    | 'code-davinci-002'
+    | 'text-curie-001' = 'text-davinci-002',
+  stopToken: string | string[] | null = null
+): Promise<string> {
+  const config = new Configuration({
+    apiKey: apikey
+  });
+  const openai = new OpenAIApi(config);
+  const response = await openai.createCompletion({
+    model: model,
+    prompt: text,
+    max_tokens: max_length,
+    temperature: temperature,
+    top_p: top_p,
+    frequency_penalty: 1.0,
+    presence_penalty: 1.0,
+    stop: stopToken
+  });
+  return response.data.choices![0].text!;
+}
+
+export async function retryGenerateTextOpenAI(
+  text: string,
+  apikey: string,
+  min_length: number,
+  max_length: number,
+  temperature: number,
+  top_p: number,
+  model:
+    | 'text-davinci-002'
+    | 'code-davinci-002'
+    | 'text-curie-001' = 'text-davinci-002',
+  stopToken: string | string[] | null = null,
+  delaySeconds = 1
+): Promise<string> {
+  // Log everything to log/<timestamp>.log
+  const log = fs.createWriteStream(`log/${new Date().toISOString()}.log`, {
+    flags: 'a'
+  });
+  log.write(
+    `Min length: ${min_length} Max lenght: ${max_length} Temperature: ${temperature} Top_p: ${top_p} Model: ${model} Stop token: ${stopToken}\n`
+  );
+  log.write(`\n${text}\n`);
+  console.log(
+    `Min length: ${min_length} Max lenght: ${max_length} Temperature: ${temperature} Top_p: ${top_p} Model: ${model} Stop token: ${stopToken}`
+  );
+
+  await new Promise((resolve) => setTimeout(resolve, Math.random() * 1500));
+
+  try {
+    let result = await generateTextOpenAI(
+      text,
+      apikey,
+      min_length,
+      max_length,
+      temperature,
+      top_p,
+      model,
+      stopToken
+    );
+    console.log(`Result: ${result.length} retruend`);
+    log.write(`\n=======================================\n${result}\n`);
+    log.close();
+    return result;
+  } catch (error: any) {
+    log.write(`\n=======================================\n${error}\n`);
+    log.write(
+      `\n=======================================\n${JSON.stringify(
+        error.response.data
+      )}\n`
+    );
+    log.close();
+
+    if (error.response && error.response.status == 429) {
+      let delay = Math.random() * 1000 * delaySeconds;
+      console.log(`429. Waiting ${delay} ms and retrying.`);
+      // Retry
+      // Wait randomly up to 10 seconds
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return await retryGenerateTextOpenAI(
+        text,
+        apikey,
+        min_length,
+        max_length,
+        temperature,
+        top_p,
+        model,
+        stopToken,
+        delaySeconds ^ 2
+      );
+    }
+  }
+
+  throw new Error('Failed to generate text with non-temporary error');
+}

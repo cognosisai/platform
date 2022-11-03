@@ -6,7 +6,9 @@ import fs from 'fs';
 async function run() {
   // Connect to the default Server location (localhost:7233)
   //const connection = await Connection.connect();
-  const connection = await Connection.connect({address: 'prod-cognosisai-temporal.internal:7233'});
+  const connection = await Connection.connect({
+    address: 'prod-cognosisai-temporal.internal:7233'
+  });
 
   // In production, pass options to configure TLS and other settings:
   // {
@@ -15,7 +17,7 @@ async function run() {
   // }
 
   const client = new WorkflowClient({
-    connection,
+    connection
     // namespace: 'foo.bar', // connects to 'default' namespace if not specified
   });
 
@@ -23,9 +25,9 @@ async function run() {
   const handle = await client.start(IJavascript, {
     // type inference works! args: [name: string]
     args: [process.argv[2]],
-    taskQueue: "hello-world",
+    taskQueue: 'hello-world',
     // in practice, use a meaningful business id, eg customerId or transactionId
-    workflowId: "workflow-" + nanoid(),
+    workflowId: 'workflow-' + nanoid()
     // retry: {
     //   initialInterval: 1,
     //   backoffCoefficient: 2,
@@ -36,7 +38,7 @@ async function run() {
   });
 
   let result = await handle.result();
-  console.log( result );
+  console.log(result);
 }
 
 run().catch((err) => {

@@ -21,7 +21,6 @@ export const ElasticConfig = {
 
 /* elastic.co cloud hosted example */
 export const ElasticConfig = {
-    cloud: { id: ELASTIC_CLOUD_ID },
-    auth: { apiKey: ELASTIC_KEY }
+  cloud: { id: ELASTIC_CLOUD_ID },
+  auth: { apiKey: ELASTIC_KEY }
 };
-

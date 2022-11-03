@@ -1,35 +1,36 @@
-import axios from "axios";
-import { Connection, WorkflowClient } from "@temporalio/client";
-import { nanoid } from "nanoid";
+import axios from 'axios';
+import { Connection, WorkflowClient } from '@temporalio/client';
+import { nanoid } from 'nanoid';
 
-import { getElasticSearchClient } from "./elastic";
+import { getElasticSearchClient } from './elastic';
 
-import {TEMPORAL_HOST} from '../config';
+import { TEMPORAL_HOST } from '../config';
 
-
-export async function nlp_stable_diffusion( token: string, prompt: string ): Promise< string >
-{
+export async function nlp_stable_diffusion(
+  token: string,
+  prompt: string
+): Promise<string> {
   const response = await axios.post(
     `https://api.nlpcloud.io/v1/gpu/stable-diffusion/image-generation`,
     {
-      "text": prompt,
+      text: prompt
     },
     {
       headers: {
         Authorization: `Token ${token}`,
-        "Content-Type": "application/json"
+        'Content-Type': 'application/json'
       }
-    });
+    }
+  );
 
   return response.data.url;
 }
 
-export async function actionLogger( msg: string )
-{
-  console.log( msg );
+export async function actionLogger(msg: string) {
+  console.log(msg);
   // Store it in elasticsearch under the 'actionLogger' context:
   let client = await getElasticSearchClient();
-  await client.index( {index: 'actionlogger', body: {message: msg}} );
+  await client.index({ index: 'actionlogger', body: { message: msg } });
   client.close();
 }
 
@@ -40,18 +41,25 @@ export async function actionLogger( msg: string )
  * @param {any} headers
  * @param {any} data
  */
- export async function wf_axios( url: string, method: string, headers: any, data: any ): Promise< any >
- {
-   let r = await axios.request( {url: url, method: method, headers: headers, data: data} );
-   return r.data;
- }
- 
- 
- export async function md5sum( string: string ): Promise< string >
- {
-   const crypto = require('crypto');
-   return crypto.createHash('md5').update( string ).digest("hex");
- }
+export async function wf_axios(
+  url: string,
+  method: string,
+  headers: any,
+  data: any
+): Promise<any> {
+  let r = await axios.request({
+    url: url,
+    method: method,
+    headers: headers,
+    data: data
+  });
+  return r.data;
+}
+
+export async function md5sum(string: string): Promise<string> {
+  const crypto = require('crypto');
+  return crypto.createHash('md5').update(string).digest('hex');
+}
 
 /**
  * @function executeWorkflow
@@ -61,22 +69,27 @@ export async function actionLogger( msg: string )
  * @param {any[]} args
  * @description Triggers a new workflow execution
  */
- export async function executeWorkflow< T >( address: string, workflowId: string, taskQueue: string, args: any[] ): Promise< T >
- {
-   const connection = await Connection.connect({address: address});
-   const client = new WorkflowClient({connection });
-   let r = await client.start( workflowId, {
-     args: args,
-     taskQueue: taskQueue,
-     workflowId: "workflow-" + nanoid(),
- 
-   } );
-   let result = await r.result();
-   return( result );
- }
-  
+export async function executeWorkflow<T>(
+  address: string,
+  workflowId: string,
+  taskQueue: string,
+  args: any[]
+): Promise<T> {
+  const connection = await Connection.connect({ address: address });
+  const client = new WorkflowClient({ connection });
+  let r = await client.start(workflowId, {
+    args: args,
+    taskQueue: taskQueue,
+    workflowId: 'workflow-' + nanoid()
+  });
+  let result = await r.result();
+  return result;
+}
 
-export async function executeLocalWorkflow< T >( workflowId: string, taskQueue: string, args: any[] ): Promise< T >
-{
-    return executeWorkflow(TEMPORAL_HOST, workflowId, taskQueue, args);
+export async function executeLocalWorkflow<T>(
+  workflowId: string,
+  taskQueue: string,
+  args: any[]
+): Promise<T> {
+  return executeWorkflow(TEMPORAL_HOST, workflowId, taskQueue, args);
 }

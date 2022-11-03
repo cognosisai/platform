@@ -1,7 +1,6 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
 import * as activities from './activities';
-import express from "express";
-
+import express from 'express';
 
 // TODO: #2 #1 configuration system
 async function run() {
@@ -24,17 +23,16 @@ async function run() {
   // Sleep for a second
   await new Promise((resolve) => setTimeout(resolve, 1000));
 */
-    const connection = await NativeConnection.connect({
-      address: 'prod-cognosisai-temporal.internal:7233', // defaults port to 7233 if not specified
-    });
-
+  const connection = await NativeConnection.connect({
+    address: 'prod-cognosisai-temporal.internal:7233' // defaults port to 7233 if not specified
+  });
 
   const worker = await Worker.create({
     connection: connection,
     workflowsPath: require.resolve('./workflows'),
     activities,
     taskQueue: 'hello-world',
-    debugMode: true,
+    debugMode: true
   });
   // Worker connects to localhost by default and uses console.error for logging.
   // Customize the Worker by passing more options to create():
