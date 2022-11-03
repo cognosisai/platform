@@ -247,8 +247,8 @@ const token_word_ratio = 0.5;
     return( result );
   }
   
-  async function testAnswerFromQuestion( question: string, answer: string ): Promise< boolean >
-  {
+async function testAnswerFromQuestion( question: string, answer: string ): Promise< boolean >
+{
     let p = 
   `Question: {{{question}}}
   Answer: {{{answer}}}
@@ -258,30 +258,49 @@ const token_word_ratio = 0.5;
     return( result.toLowerCase().indexOf('yes') >= 0 );
   }
 
-  export async function mapreduce_summary( text: string,
+  /**
+   * 
+   * @param text Text to summarize which is potentially larger than the context-size of the LLM model
+   * @param primarySummarizeTemplate Template to use for the map step summary
+   * @param reduceSummarizeTemplate Teomplate to use for the reduce step summary
+   * @returns A summary of the text
+   */
+export async function mapreduce_summary( text: string,
     primarySummarizeTemplate: string = "Analyze the following text for a detailed summary.\n\n{{{chunk}}}\n\nProvide a detailed summary:", 
     reduceSummarizeTemplate: string = "These are a series of summaries that you are going to summarize:\n\n{{{chunk}}}\n\nProvide a detailed summary in the 3rd party passive voice, removing duplicate information:"): Promise< string >
 {
-if ( text == null || text.length == 0 )
+  if ( text == null || text.length == 0 )
+    return "";
+
+  let completions = await mapPromptTemplate( text, primarySummarizeTemplate );
+  return reducePromptTemplate( completions, reduceSummarizeTemplate );
+}
+
+/** 
+ * mapreduce_question_text
+ * @param text Text to be processed
+ * @param primaryQuestionTemplate Template for the primary question
+ * @param reduceQuestionTemplate Template for the reduce question
+ * @returns A promise that resolves to the final answer
+ */
+export async function mapreduce_question_text( text: string, question: string,
+  primarySummarizeTemplate: string = `Read the following text:\n\n{{{chunk}}}\n\nQuestion:\n\n${question}\n\nAnswer:`,
+  reduceSummarizeTemplate: string = `Question: ${question}\nPossible Answers:\n{{{chunk}}}\n\\n\nQuestion: ${question}\nBest Answer:`): Promise< string >
+{
+  if ( text == null || text.length == 0 )
   return "";
 
-let completions = await mapPromptTemplate( text, primarySummarizeTemplate );
-return reducePromptTemplate( completions, reduceSummarizeTemplate );
+  let completions = await mapPromptTemplate( text, primarySummarizeTemplate );
+  let possible_answers = completions.map( ([c, p, l], i, a) => `Possible Answer: "${c}"\n` );
+  return reducePromptTemplate( completions, reduceSummarizeTemplate );
 }
 
-
-export async function mapreduce_question_text( text: string, question: string,
-primarySummarizeTemplate: string = `Read the following text:\n\n{{{chunk}}}\n\nQuestion:\n\n${question}\n\nAnswer:`,
-reduceSummarizeTemplate: string = `Question: ${question}\nPossible Answers:\n{{{chunk}}}\n\\n\nQuestion: ${question}\nBest Answer:`): Promise< string >
-{
-if ( text == null || text.length == 0 )
-return "";
-
-let completions = await mapPromptTemplate( text, primarySummarizeTemplate );
-let possible_answers = completions.map( ([c, p, l], i, a) => `Possible Answer: "${c}"\n` );
-return reducePromptTemplate( completions, reduceSummarizeTemplate );
-}
-
+/**
+ * mapPromptTemplate
+ * @param text Input text to be processed
+ * @param primarySummarizeTemplate Prompt template run on each chunk of text
+ * @returns List of completions from running prompt primarySummarizeTemplate on each chunk of text
+ */
 export async function mapPromptTemplate( text: string,
 primarySummarizeTemplate: string = "Analyze the following text for a detailed summary.\n\n{{{chunk}}}\n\nProvide a detailed summary:"): Promise< string[] >
 {
@@ -293,6 +312,13 @@ console.log( completions );
 return( completions );
 }
 
+/**
+ * reducePromptTemplate
+ * 
+ * @param completions Array of completions, usually output from mapPromptTemplate
+ * @param reduceTemplate Prompt template run on completions to reduce them to a single summary
+ * @returns Final return value of the reduce prompt templates being run on completions from the map prompt templates.
+ */
 export async function reducePromptTemplate( completions: string[],
 reduceTemplate: string = "These are a series of summaries that you are going to summarize:\n\n{{{chunk}}}\n\nProvide a detailed summary, but removing duplicate information:"): Promise< string >
 {
