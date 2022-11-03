@@ -3,22 +3,8 @@ import { Client } from '@elastic/elasticsearch';
 import { esMappings } from '../workflows/elastic';
 
 
-import { ELASTIC_KEY, ELASTIC_CLOUD_ID } from '../config';
+import { ElasticConfig } from '../config';
 
-const localElasticConfig = { 
-    auth: { username: "elastic", password: "+xldU8t-mHh_Q5m+sKyO" },
-    node: "https://localhost:9201",
-    tls: {
-      // might be required if it's a self-signed certificate
-      rejectUnauthorized: false,
-    },
-  };
-  
-  const elasticconfig = {
-      cloud: { id: ELASTIC_CLOUD_ID },
-      auth: { apiKey: ELASTIC_KEY }
-  };
-  
   /**
    * @function getElasticSearchClient
    * @param {any} elasticconfig
@@ -27,7 +13,7 @@ const localElasticConfig = {
    */
   export async function getElasticSearchClient(): Promise< Client >
   {
-    const client = new Client(elasticconfig);
+    const client = new Client(ElasticConfig);
     return client;
   }
   
