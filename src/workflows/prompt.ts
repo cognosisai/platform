@@ -1,23 +1,17 @@
-import { proxyActivities, uuid4 } from '@temporalio/workflow';
+import { proxyActivities } from '@temporalio/workflow';
 import { default as mustache } from 'mustache';
 
 import * as llm from './llm';
 import * as elastic from '../activities/elastic';
 import * as tokenizer from '../activities/tokenizer';
-import * as util from '../activities/util';
 
 import { logger } from './util';
 import { embeddingsFromTextSearch } from './embeddings';
 
-const { minGenerate, nlpcloud_generate, nlpcloud_tokens, openai_generate } =
-  proxyActivities<typeof llm>({ startToCloseTimeout: '10 minute' });
-const { nlpcloud_tokenize, tokenize_native } = proxyActivities<
+const { tokenize_native } = proxyActivities<
   typeof tokenizer
 >({ startToCloseTimeout: '10 minute' });
 const { es_context } = proxyActivities<typeof elastic>({
-  startToCloseTimeout: '10 minute'
-});
-const { actionLogger, nlp_stable_diffusion } = proxyActivities<typeof util>({
   startToCloseTimeout: '10 minute'
 });
 
@@ -29,14 +23,17 @@ export async function promptTemplate<T>(
   temperature: number = 0.0,
   model: 'gpt-3' | 'gpt-neox-20b' = 'gpt-neox-20b'
 ): Promise<string> {
+  console.log("OK, got into promptTemplate")
   let prompt = mustache.render(template, variables);
-  let response = await minGenerate(
+  console.log("Rendered mustache:\n" + prompt);
+  let response = await llm.minGenerate(
     prompt,
     minLength,
     maxLength,
     temperature,
     model
   );
+  console.log("Got response:\n" + response);
   return response;
 }
 
