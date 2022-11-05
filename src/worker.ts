@@ -2,6 +2,7 @@ import { Worker, NativeConnection } from '@temporalio/worker';
 import * as activities from './activities';
 import express from 'express';
 
+import { TEMPORAL_HOST } from './config';
 // TODO: #2 #1 configuration system
 async function run() {
   // Setup command & control server
@@ -24,7 +25,7 @@ async function run() {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 */
   const connection = await NativeConnection.connect({
-    address: 'prod-cognosisai-temporal.internal:7233' // defaults port to 7233 if not specified
+    address: TEMPORAL_HOST // defaults port to 7233 if not specified
   });
 
   const worker = await Worker.create({

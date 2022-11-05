@@ -15,7 +15,7 @@ import {
   init_elasticsearch_mappings
 } from './elastic';
 
-import { GOOGLE_SERVICE_KEY } from '../config';
+import { EMBEDDINGS_URL } from '../config';
 
 /**
  *
@@ -29,15 +29,11 @@ export async function nlp_embeddings_internal(
   texts: string[]
 ): Promise<Map<string, number[]>> {
   try {
-    const response = await axios.post(
-      `https://cognosisai-tshelloworld-embeddings-df52273-lp4f7jpena-uc.a.run.app`,
-      JSON.stringify(texts),
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+    const response = await axios.post(EMBEDDINGS_URL, JSON.stringify(texts), {
+      headers: {
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
     let r = new Map<string, number[]>();
 
@@ -113,57 +109,15 @@ export async function nlp_embeddings(
   texts: string[]
 ): Promise<[string, number[]][]> {
   let token;
-  var spawn = require('child_process').spawn;
-  process.env.GOOGLE_APPLICATION_CREDENTIALS =
-    '../deploy/production/etc/cognosis-hello-world-5b28cb5111ff.json'; // TODO: Fix me
-  /*var program = spawn('gcloud', ['auth', 'print-access-token']);
- 
-   // Add GOOGLE_APPLICATION_CREDENTIALS=/tmp/foo to the environment variables
-   // to use the service account credentials.
- 
-   // Wait until the program has finished
-   await new Promise<void>((resolve, reject) => {
- 
-     
- 
-     program.stdout.on('data', async (data: any) => 
-     {
-       token = data.toString();
-       // Remove all dots and trailing newlines in token
-       //token = token.replace(/\./g, '');
-       token = token.replace(/\n/g, '');
-       console.log( `Token: ${[token]}` );
-       resolve();
-     } 
-     );
-   });
-   */
-
-  const ENDPOINT_ID = '2008878112690929664';
-  const PROJECT_ID = 'cognosis-hello-world';
-  const url = `https://us-central1-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/endpoints/${ENDPOINT_ID}:predict`;
-
-  async function getGCPAccessToken() {
-    const { auth } = require('google-auth-library');
-    let skey = GOOGLE_SERVICE_KEY;
-    const client = auth.fromJSON(skey);
-    client.scopes = ['https://www.googleapis.com/auth/cloud-platform'];
-    const url = `https://dns.googleapis.com/dns/v1/projects/${PROJECT_ID}`;
-    const res = await client.request({ url });
-    return client.credentials.access_token;
-  }
-
-  token = await getGCPAccessToken();
 
   let retval: [string, number[]][] = [];
   try {
     const response = await axios.post(
-      url,
+      EMBEDDINGS_URL,
       JSON.stringify({ instances: texts }),
       {
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         }
       }
     );
