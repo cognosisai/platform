@@ -9,6 +9,7 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 
 import { TEMPORAL_HOST } from '../../config';
+import { OPENAI_TOKEN } from '../../config';
 
 export function searchLoadedPackages(): [string, string][] {
   return [
@@ -257,8 +258,7 @@ export const illustrations = {
  * @param apiKey
  */
 export async function executeJavascriptNotebook(
-  p: string,
-  apiKey: string
+  p: string
 ): Promise<string> {
   console.log(`Executing Javascript Notebook: ${p}`);
 
@@ -281,7 +281,6 @@ export async function executeJavascriptNotebook(
   // Execute OpenAI API call using code model
   let r = await retryGenerateTextOpenAI(
     notebook,
-    apiKey,
     10,
     1024,
     0.0,
@@ -357,7 +356,6 @@ async function executeJavascriptSnippetLoop(
 
   let r = await retryGenerateTextOpenAI(
     n,
-    apiKey,
     10,
     512,
     0.0,
@@ -387,7 +385,6 @@ async function executeJavascriptSnippetLoop(
         "\n\nTake everything you've seen so far, and summarize it in a way that may be useful later:";
       let r2 = await retryGenerateTextOpenAI(
         n + summary_prompt_append,
-        apiKey,
         10,
         512,
         0.0,

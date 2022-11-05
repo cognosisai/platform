@@ -14,7 +14,6 @@ import { storeEmbeddings } from './embeddings';
 import { minGenerate } from './llm';
 import { mapreduce_summary } from './prompt';
 import { Cog, Cogset } from '../cogs/cog';
-import { TEMPORAL_HOST } from '../config';
 
 const { promptReducer, promptTemplate } = proxyActivities<typeof prompt>({
   startToCloseTimeout: '10 minute'
@@ -544,8 +543,7 @@ let cog_replicate_sd = new Cog(
     );
 
     let results = <any>(
-      await executeWorkflow(
-        TEMPORAL_HOST,
+      await executeLocalWorkflow(
         'StableDiffusionWorkflow',
         'GO_TASK_QUEUE',
         [{ Prompt: detailedPrompt }]

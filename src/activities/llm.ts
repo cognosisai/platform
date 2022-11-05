@@ -1,14 +1,13 @@
 import axios from 'axios';
 import { Configuration, OpenAIApi } from 'openai';
 import fs from 'fs';
-// Import json5
+import {NLPCLOUD_TOKEN, OPENAI_TOKEN} from '../config';
 
 /**
  * @function generateText
  *
  * @param {string} modelName Model to use for generation
  * @param {string} text Text to use as prompt (input)
- * @param {string} token API token
  * @param {number} minLength Minimum length of generated text (not always respected by the model)
  * @param {number} maxLength Maximum length of generated text (this is respected by the model)
  * @param {boolean|null} lengthNoInput Calculate length based on prompt (input) text
@@ -31,7 +30,6 @@ import fs from 'fs';
 export async function generateText(
   modelName: string,
   text: string,
-  token: string,
   minLength: number = 10,
   maxLength: number = 20,
   lengthNoInput: boolean | null = null,
@@ -74,7 +72,7 @@ export async function generateText(
     },
     {
       headers: {
-        Authorization: `Token ${token}`,
+        Authorization: `Token ${NLPCLOUD_TOKEN}`,
         'Content-Type': 'application/json'
       }
     }
@@ -94,7 +92,6 @@ export async function generateText(
  */
 export async function generateTextOpenAI(
   text: string,
-  apikey: string,
   min_length: number,
   max_length: number,
   temperature: number,
@@ -106,7 +103,7 @@ export async function generateTextOpenAI(
   stopToken: string | string[] | null = null
 ): Promise<string> {
   const config = new Configuration({
-    apiKey: apikey
+    apiKey: OPENAI_TOKEN
   });
   const openai = new OpenAIApi(config);
   const response = await openai.createCompletion({
@@ -124,7 +121,6 @@ export async function generateTextOpenAI(
 
 export async function retryGenerateTextOpenAI(
   text: string,
-  apikey: string,
   min_length: number,
   max_length: number,
   temperature: number,
@@ -153,7 +149,6 @@ export async function retryGenerateTextOpenAI(
   try {
     let result = await generateTextOpenAI(
       text,
-      apikey,
       min_length,
       max_length,
       temperature,
@@ -182,7 +177,6 @@ export async function retryGenerateTextOpenAI(
       await new Promise((resolve) => setTimeout(resolve, delay));
       return await retryGenerateTextOpenAI(
         text,
-        apikey,
         min_length,
         max_length,
         temperature,

@@ -3,8 +3,6 @@ import { proxyActivities, uuid4 } from '@temporalio/workflow';
 import * as llm from '../activities/llm';
 import * as tokenizer from '../activities/tokenizer';
 
-import { NLPCLOUD_TOKEN, OPENAI_TOKEN } from '../config';
-
 const { generateText, generateTextOpenAI, retryGenerateTextOpenAI } =
   proxyActivities<typeof llm>({ startToCloseTimeout: '10 minute' });
 const { nlpcloud_tokenize, tokenize_native } = proxyActivities<
@@ -57,7 +55,6 @@ export async function nlpcloud_generate(
   return await generateText(
     'finetuned-gpt-neox-20b',
     prompt,
-    NLPCLOUD_TOKEN,
     minLength,
     maxLength,
     lengthNoInput,
@@ -78,17 +75,6 @@ export async function nlpcloud_generate(
   );
 }
 
-/**
- *
- * @function nlpcloud_tokens
- * @param {string} text
- * @description A workflow that will tokenize text using the NLP Cloud API
- */
-export async function nlpcloud_tokens(
-  text: string
-): Promise<tokenizer.NLPCloudToken[]> {
-  return nlpcloud_tokenize(text, NLPCLOUD_TOKEN);
-}
 
 /**
  * @function openai_generate
@@ -102,7 +88,6 @@ export async function nlpcloud_tokens(
  */
 export async function openai_generate(
   prompt: string,
-  apikey: string,
   min_length: number,
   max_length: number,
   temperature: number,
@@ -110,7 +95,6 @@ export async function openai_generate(
 ): Promise<string> {
   return await generateTextOpenAI(
     prompt,
-    apikey,
     min_length,
     max_length,
     temperature,
@@ -163,7 +147,6 @@ export async function minGenerate(
   } else if (model == 'gpt-3') {
     let completion = await openai_generate(
       prompt,
-      OPENAI_TOKEN,
       minLength,
       maxLength,
       temperature,

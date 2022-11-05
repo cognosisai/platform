@@ -4,10 +4,9 @@ import { nanoid } from 'nanoid';
 
 import { getElasticSearchClient } from './elastic';
 
-import { TEMPORAL_HOST } from '../config';
+import { TEMPORAL_HOST, NLPCLOUD_TOKEN } from '../config';
 
 export async function nlp_stable_diffusion(
-  token: string,
   prompt: string
 ): Promise<string> {
   const response = await axios.post(
@@ -17,7 +16,7 @@ export async function nlp_stable_diffusion(
     },
     {
       headers: {
-        Authorization: `Token ${token}`,
+        Authorization: `Token ${NLPCLOUD_TOKEN}`,
         'Content-Type': 'application/json'
       }
     }
