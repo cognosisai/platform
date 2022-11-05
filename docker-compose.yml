@@ -1,0 +1,40 @@
+version: "3.5"
+services:
+  embeddings:
+    container_name: cognosis-embeddings
+    image: cognosis-embeddings
+    expose:
+      - 8080
+  elasticsearch:
+    container_name: cognosis-elasticsearch
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    image: elasticsearch:8.5.0
+    networks:
+      - temporal-network
+    expose:
+      - 9200
+      - 9300
+  temporal:
+    container_name: cognosis-temporal  
+    image: avalor/temporalite:0.2.0
+    networks:
+      - temporal-network
+    ports:
+      - 8233:8233
+      - 7233:7233
+    labels:
+      kompose.volume.type: configMap
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+  
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
