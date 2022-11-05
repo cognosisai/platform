@@ -1,5 +1,5 @@
 import { Connection, WorkflowClient } from '@temporalio/client';
-import { IJavascript } from './workflows';
+import { IJavascript } from '../workflows';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
 

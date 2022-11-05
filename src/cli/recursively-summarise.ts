@@ -3,7 +3,7 @@ import {
   mapPromptTemplate,
   mapreduce_summary,
   TranscriptToStructuredData
-} from './workflows';
+} from '../workflows';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
 

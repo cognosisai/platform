@@ -6,3 +6,4 @@ export * from './workflows/embeddings';
 export * from './workflows/chatbot';
 export * from './workflows/util';
 export * from './workflows/application/ijavascript';
+export * from './workflows/application/call-transcription';

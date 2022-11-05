@@ -1,5 +1,5 @@
 import { Connection, WorkflowClient } from '@temporalio/client';
-import { esMappings, storeEmbeddings } from './workflows';
+import { esMappings, storeEmbeddings } from '../workflows';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
 
