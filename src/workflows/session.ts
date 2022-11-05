@@ -15,11 +15,16 @@ export const userInputSignal = defineSignal<[UserInput]>('input');
 export const userOutputSignal = defineSignal<[UserOutput]>('output');
 export const userOutputListenerSignal = defineSignal<[{listener_wf: string, target_wf: string}]>('output_listener');
 
-export interface Frame
+export interface FrameInput
 {
     text: string;
+}
+
+export interface Frame extends FrameInput
+{
     ts: Date;
     logs: [Date, string] [];
+    response?: string;
 }
 
 
@@ -103,6 +108,12 @@ class Session< TFrame extends Frame >
 
     public send( s: string ): void
     {
+        // Add to response from last frame, if it exists
+        if ( this._messages.length > 0 )
+        {
+            this._messages[this._messages.length-1].response = s;
+        }
+
         this._outputBuffer += s;
 
         this._outputListeners.forEach( (l) => {
@@ -116,6 +127,18 @@ class Session< TFrame extends Frame >
         this._outputListeners.push( listener );
     }
 
+    public async getInput( mh: Session<any> ): Promise<string>
+    {
+    
+        // Wait for the user to respond
+        await wf.condition( () => mh.state == 'MESSAGE_RECEIVED' );
+        {
+            mh.state = 'IDLE';
+            let input = mh.inputBuffer;
+            return input;
+        }
+    }
+    
     public async init(): Promise< void >
     {
         setHandler(userInputSignal, ({ text }: UserInput) => {
@@ -133,19 +156,8 @@ class Session< TFrame extends Frame >
     }
 }
 
-async function getInput( mh: Session<any> ): Promise<string>
-{
 
-    // Wait for the user to respond
-    await wf.condition( () => mh.state == 'MESSAGE_RECEIVED' );
-    {
-        mh.state = 'IDLE';
-        let input = mh.inputBuffer
-        return input;
-    }
-}
-
-export async function send( wfid: string, message: Frame ): Promise<void>
+export async function send( wfid: string, message: FrameInput ): Promise<void>
 {
     const handle = getExternalWorkflowHandle(wfid);
     await handle.signal( 'input', message );
@@ -196,11 +208,12 @@ export async function testSession( first_message: Frame )
     session.log( "Session started" );
     while( true )
     {
-        let input = await getInput( session );
+        let input = await session.getInput( session );
+        session.addMessage({text: input, ts: new Date(), logs: []});
         session.log( "User input: " + input );
         let response = await pf.promptTemplate(
 `User: {{{input}}}
-Response:`, { input: input } );
+Response:`, { input: input }, 10, 512 );
         session.log( "Response: " + response );
         session.send( response );
     }
