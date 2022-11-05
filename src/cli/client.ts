@@ -2,10 +2,12 @@ import { Connection, WorkflowClient } from '@temporalio/client';
 import { esMappings, storeEmbeddings } from '../workflows';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
+import * as config from '../config';
 
+  
 async function run() {
   // Connect to the default Server location (localhost:7233)
-  const connection = await Connection.connect();
+  const connection = await Connection.connect( {address: config.TEMPORAL_HOST} );
   // In production, pass options to configure TLS and other settings:
   // {
   //   address: 'foo.bar.tmprl.cloud',

@@ -5,7 +5,6 @@ import express from 'express';
 import { TEMPORAL_HOST } from './config';
 // TODO: #2 #1 configuration system
 async function run() {
-  // Setup command & control server
   const app = express();
 
   /*
@@ -24,6 +23,9 @@ async function run() {
   // Sleep for a second
   await new Promise((resolve) => setTimeout(resolve, 1000));
 */
+  
+  console.log( `Connecting to Temporal ${TEMPORAL_HOST}` );
+
   const connection = await NativeConnection.connect({
     address: TEMPORAL_HOST // defaults port to 7233 if not specified
   });
