@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Client } from '@elastic/elasticsearch';
 import { esMappings } from '../workflows/elastic';
 
-import { ElasticConfig } from '../config';
+import { ELASTIC_CONFIG } from '../config';
 
 /**
  * @function getElasticSearchClient
@@ -11,7 +11,7 @@ import { ElasticConfig } from '../config';
  * @description Returns a promise that resolves to an ElasticSearch client
  */
 export async function getElasticSearchClient(): Promise<Client> {
-  const client = new Client(ElasticConfig);
+  const client = new Client(ELASTIC_CONFIG);
   return client;
 }
 
