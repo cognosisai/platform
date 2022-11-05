@@ -18,9 +18,9 @@ services:
     image: elasticsearch:8.5.0
     networks:
       - temporal-network
-    expose:
-      - 9200
-      - 9300
+    ports:
+      - 9200:9200
+      - 9300:9300
   temporal:
     container_name: cognosis-temporal  
     image: avalor/temporalite:0.2.0
