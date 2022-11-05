@@ -308,7 +308,7 @@ export async function executeJavascriptNotebook(
     await socket.writeAndRead("const x = require('./src/activities')\n");
     await socket.writeAndRead('console.log = function(x) { return x }\n');
 
-    return await executeJavascriptSnippetLoop(notebook, apiKey, socket, 1, p);
+    return await executeJavascriptSnippetLoop(notebook, socket, 1, p);
 
     /*
     This is all bad.
@@ -334,7 +334,6 @@ export async function executeJavascriptNotebook(
 
 async function executeJavascriptSnippetLoop(
   n: string,
-  apiKey: string,
   socket: Socket,
   counter: number,
   original_question: string
@@ -427,7 +426,6 @@ async function executeJavascriptSnippetLoop(
       n += `Error [${counter}]: ${errmsg}\n`;
       return await executeJavascriptSnippetLoop(
         n,
-        apiKey,
         socket,
         counter + 1,
         original_question
@@ -463,7 +461,6 @@ async function executeJavascriptSnippetLoop(
 
     return executeJavascriptSnippetLoop(
       n,
-      apiKey,
       socket,
       counter + 1,
       original_question
