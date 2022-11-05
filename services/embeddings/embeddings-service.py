@@ -25,4 +25,4 @@ if __name__ == '__main__':
     # USEv5 is about 100x faster than 4
     embed = hub.load(
         "https://tfhub.dev/google/universal-sentence-encoder-large/5")
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=9100)
