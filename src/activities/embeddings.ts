@@ -114,7 +114,7 @@ export async function nlp_embeddings(
   try {
     const response = await axios.post(
       EMBEDDINGS_URL,
-      JSON.stringify({ instances: texts }),
+      JSON.stringify( texts ),
       {
         headers: {
           'Content-Type': 'application/json'
@@ -124,14 +124,14 @@ export async function nlp_embeddings(
 
     let r = new Map<string, number[]>();
     let obj = response.data;
-    if (obj.predictions.length != texts.length) {
+    if (obj.length != texts.length) {
       throw new Error(
         `Embeddings generation error: texts were ${texts.length} long, while there were ${obj.length} embeddings returned`
       );
     }
 
-    for (let x = 0; x < obj.predictions.length; x++) {
-      retval.push([texts[x], obj.predictions[x]]);
+    for (let x = 0; x < obj.length; x++) {
+      retval.push([texts[x], obj[x]["vector"]]);
     }
 
     return retval;
