@@ -1,7 +1,11 @@
 {
-  "name": "cognosis",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@cognosis/platform",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cognosisai/platform.git"
+  },
+  "version": "0.5.0",
+  "private": false,
   "scripts": {
     "build": "tsc --build",
     "build.watch": "tsc --build --watch",
