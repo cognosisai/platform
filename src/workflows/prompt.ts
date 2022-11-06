@@ -4,16 +4,13 @@ import { default as mustache } from 'mustache';
 import * as llm from './llm';
 import * as elastic from '../activities/elastic';
 import * as tokenizer from '../activities/tokenizer';
+import * as vector_search from '../activities/vector_search';
 
 import { logger } from './util';
 import { embeddingsFromTextSearch } from './embeddings';
 
-const { tokenize_native } = proxyActivities<
-  typeof tokenizer
->({ startToCloseTimeout: '10 minute' });
-const { es_context } = proxyActivities<typeof elastic>({
-  startToCloseTimeout: '10 minute'
-});
+const { tokenize_native } = proxyActivities< typeof tokenizer>({ startToCloseTimeout: '10 minute' });
+const { es_context } = proxyActivities<typeof vector_search>({ startToCloseTimeout: '10 minute' });
 
 export async function promptTemplate<T>(
   template: string,

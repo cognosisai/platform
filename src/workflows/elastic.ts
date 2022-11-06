@@ -1,9 +1,9 @@
 import { proxyActivities, uuid4 } from '@temporalio/workflow';
 
 import * as elastic from '../activities/elastic';
-const { es_index, es_mappings, es_search } = proxyActivities<typeof elastic>({
-  startToCloseTimeout: '10 minute'
-});
+import * as vector_search from '../activities/vector_search';
+const { es_index, es_search } = proxyActivities<typeof elastic>({startToCloseTimeout: '10 minute'});
+const { es_mappings } = proxyActivities<typeof vector_search>({startToCloseTimeout: '10 minute'});
 
 /**
  * @function wf_esindex

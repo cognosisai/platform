@@ -3,6 +3,7 @@ import { default as mustache } from 'mustache';
 import * as prompt from './prompt';
 import * as elastic from '../activities/elastic';
 import * as util from '../activities/util';
+import * as embeddings_search from '../activities/vector_search';
 
 import { proxyActivities, uuid4 } from '@temporalio/workflow';
 import { ChatSession, Personality } from '../clones';
@@ -15,7 +16,6 @@ import { minGenerate } from './llm';
 import { mapreduce_summary } from './prompt';
 import { Cog, Cogset } from '../cogs/cog';
 
-
 /*
  * Chatbots require prompt templates, elasticsearch queries and indexing, and the ability to execute local workflows.
  */
@@ -25,7 +25,6 @@ const { promptReducer, promptTemplate } = proxyActivities<typeof prompt>({
 });
 const {
   es_query,
-  init_elasticsearch_mappings,
   es_index,
 } = proxyActivities<typeof elastic>({ startToCloseTimeout: '10 minute' });
 const {
@@ -33,6 +32,8 @@ const {
   wf_axios,
   executeLocalWorkflow,
 } = proxyActivities<typeof util>({ startToCloseTimeout: '10 minute' });
+const { init_elasticsearch_mappings } = proxyActivities<typeof embeddings_search>({ startToCloseTimeout: '10 minute' });
+
 
 let personality_chuck: Personality = {
   name: 'Chuck',

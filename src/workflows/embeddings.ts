@@ -6,10 +6,6 @@ import * as util from '../activities/util';
 import { proxyActivities, uuid4 } from '@temporalio/workflow';
 
 const {
-  nlp_embeddings_internal,
-  convertVectorMapToObject,
-  embeddings_search,
-  embeddingsDrop,
   embeddingsSearch,
   nlp_embeddings
 } = proxyActivities<typeof pembeddings>({ startToCloseTimeout: '10 minute' });

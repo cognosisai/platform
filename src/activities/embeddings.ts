@@ -4,21 +4,14 @@ import { nanoid } from 'nanoid';
 import { spawn } from 'child_process';
 import fs from 'fs';
 import {
-  getElasticSearchClient,
-  es_context,
-  es_delete,
   es_drop,
-  es_index,
-  es_mappings,
-  es_query,
-  es_search,
-  init_elasticsearch_mappings
 } from './elastic';
 
 import { EMBEDDINGS_URL } from '../config';
+import { embeddings_search } from './vector_search';
 
 /**
- *
+ * @function nlp_embeddings_internal Internal function that calls the embeddings service 
  * @param {string} modelName
  * @param {string} token
  * @param {string[]} texts
@@ -56,6 +49,11 @@ export async function nlp_embeddings_internal(
 }
 
 // This might be the stupidest function I have ever written in my life. For this, I am deeply ashamed.
+/**
+ * @function convertVectorMapToObject Converts a Map<string, number[]> to an object
+ * @param map Map<string, number[]> to convert
+ * @returns {object} Object with keys as strings and values as arrays of numbers
+ */
 export const convertVectorMapToObject = (map: Map<string, number[]>): any => {
   let json: any = {};
   map.forEach((value: number[], index: string) => {
@@ -64,43 +62,12 @@ export const convertVectorMapToObject = (map: Map<string, number[]>): any => {
   return json;
 };
 
-export async function embeddings_search(
-  indexname: string,
-  vector: number[],
-  k: number
-): Promise<any> {
-  console.log(`Searching for ${vector.length} in ${indexname} returning ${k}`);
-  let client = await getElasticSearchClient();
-  try {
-    const result = await client.search({
-      index: indexname,
-      body: {
-        query: {
-          script_score: {
-            query: { match_all: {} },
-            script: {
-              source:
-                "cosineSimilarity(params.queryVector, 'embeddings') + 1.0",
-              params: { queryVector: vector }
-            }
-          }
-        },
-        size: k
-      }
-    });
-    return result.hits.hits;
-  } catch (e: any) {
-    console.error(e.meta.body.error);
-    console.error('========================== Sahr');
-    console.error(e.meta.body.error.failed_shards[0].reason);
-    throw e;
-  }
-}
-
 /**
- * @function nlp_embeddings
- * @param {string} modelName
- * @param {string[]} texts
+ * @function nlp_embeddings Generates embeddings for a list of texts
+ * @param {string} modelName Name of the model to use
+ * @param {string[]} texts List of texts to generate embeddings for
+ * @example <caption> Generates embeddings for a list of texts</caption>
+ * await nlp_embeddings('bert-base-uncased', ['hello world', 'goodbye world']);
  * @returns {Promise<Map<string, number[]>>}
  * @description Generates embeddings for a list of texts running as a Google Cloud Platform service in Vertex AI.
  */
