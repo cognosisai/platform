@@ -1,6 +1,6 @@
 import * as wf from '@temporalio/workflow';
 import * as pf from './prompt';
-import { defineSignal, setHandler, getExternalWorkflowHandle, defineQuery, workflowInfo} from '@temporalio/workflow';
+import { defineSignal, setHandler, getExternalWorkflowHandle, defineQuery, workflowInfo, sleep} from '@temporalio/workflow';
 
 export const getOutputBuffer = defineQuery<string>('getOutputBuffer');
 
@@ -14,7 +14,6 @@ interface UserOutput {
 export const userInputSignal = defineSignal<[UserInput]>('input');
 export const userOutputSignal = defineSignal<[UserOutput]>('output');
 export const userOutputListenerSignal = defineSignal<[{listener_wf: string, target_wf: string}]>('output_listener');
-export const userOutputUnlistenerSignal = defineSignal<[{listener_wf: string, target_wf: string}]>('output_unlistener');
 
 export interface FrameInput
 {
@@ -226,7 +225,16 @@ export async function testSession( first_message: Frame )
 
     while( true )
     {
-        let input = await session.getInput( session );
+        let timeout_promise = sleep("10 seconds");
+        let input_promise = session.getInput( session );
+        let p = await Promise.race( [timeout_promise, input_promise] );
+        if ( p == await timeout_promise )
+        {
+            session.log( "Session timed out" );
+            break;
+        }
+        let input = await input_promise;
+
         session.addMessage({text: input, ts: new Date(), logs: []});
         session.log( "User input: " + input );
         let response = await pf.promptTemplate(

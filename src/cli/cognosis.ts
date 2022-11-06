@@ -11,12 +11,16 @@ async function run() {
     connection
   });
 
-  let wfid = 'workflow-chatbot-session-1';
+  let wfid = 'workflow-chatbot-session-6';
   let handle = client.getHandle( wfid );
   try
   {
-    await handle.describe();
-    console.log( `Workflow ${wfid} already exists` );
+    let d = await handle.describe(); // TODO: if it's dead, we want to start a new one anyway
+    console.log( `Workflow ${wfid} already exists: ${d.status.code} ${d.status.name}` );
+    if ( d.status.code != 1 )
+    {
+      throw new Error("Workflow is not running. Starting a new one.");
+    }
   }
   catch( e: any )
   {
@@ -27,6 +31,7 @@ async function run() {
       taskQueue: 'hello-world',
       // in practice, use a meaningful business id, eg customerId or transactionId
       workflowId: wfid,
+      workflowRunTimeout: '10 minutes',
     });
   }
 
