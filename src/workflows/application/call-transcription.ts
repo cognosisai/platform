@@ -1,7 +1,13 @@
 import { promptTemplate } from '../prompt';
 
+/**
+ * Takes a transcription of a call and returns information about the call in JSON
+ * @param transcript Call transcription from call
+ * @example
+ * const callInfo = JSON.stringify( await getCallInfo('Caller: Hello, there!') );
+ * @returns JSON string with information about the call
+ */
 export async function TranscriptToStructuredData(
-  filename: string,
   transcript: string
 ): Promise<string> {
   let result =
