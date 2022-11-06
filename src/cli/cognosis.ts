@@ -11,17 +11,26 @@ async function run() {
     connection
   });
 
-  let wfid = 'workflow-' + nanoid();
-  console.log(`Starting wfid ${wfid}`);
-  const handle = await client.start(testSession, {
-    // type inference works! args: [name: string]
-    args: [{ts: new Date(), text: "Hello, world!", logs: []}],
-    taskQueue: 'hello-world',
-    // in practice, use a meaningful business id, eg customerId or transactionId
-    workflowId: wfid,
-  });
+  let wfid = 'workflow-chatbot-session-1';
+  let handle = client.getHandle( wfid );
+  try
+  {
+    await handle.describe();
+    console.log( `Workflow ${wfid} already exists` );
+  }
+  catch( e: any )
+  {
+    console.log(`Starting wfid ${wfid}`);
+    handle = await client.start(testSession, {
+      // type inference works! args: [name: string]
+      args: [{ts: new Date(), text: "Hello, world!", logs: []}],
+      taskQueue: 'hello-world',
+      // in practice, use a meaningful business id, eg customerId or transactionId
+      workflowId: wfid,
+    });
+  }
 
-  let wait = await client.start( sendread, {args: [wfid, {text: argv[2] ?? "Hey, how are you?", ts: new Date(), logs: []}],taskQueue: 'hello-world', workflowId: `${wfid}-recv`} );
+  let wait = await client.start( sendread, {args: [wfid, {text: argv[2] ?? "Hey, how are you?", ts: new Date(), logs: []}],taskQueue: 'hello-world', workflowId: `${wfid}-${nanoid()}`} );
   console.log( await wait.result() );
 }
 

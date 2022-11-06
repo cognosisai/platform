@@ -14,6 +14,7 @@ interface UserOutput {
 export const userInputSignal = defineSignal<[UserInput]>('input');
 export const userOutputSignal = defineSignal<[UserOutput]>('output');
 export const userOutputListenerSignal = defineSignal<[{listener_wf: string, target_wf: string}]>('output_listener');
+export const userOutputUnlistenerSignal = defineSignal<[{listener_wf: string, target_wf: string}]>('output_unlistener');
 
 export interface FrameInput
 {
@@ -117,14 +118,29 @@ class Session< TFrame extends Frame >
         this._outputBuffer += s;
 
         this._outputListeners.forEach( (l) => {
-            let h = getExternalWorkflowHandle(l);
-            h.signal('output', {text: s});
+            let badwfs: string[] = [];
+            try
+            {
+                let h = getExternalWorkflowHandle(l);
+                h.signal('output', {text: s});
+                this.removeOutputListener(l);
+            }
+            catch( e: any )
+            {
+                console.log(`Error sending output to ${l}: ${e}. Removing from listeners`);
+                badwfs.push(l);
+            }
         });
     }
 
     public addOutputListener( listener: string ): void
     {
         this._outputListeners.push( listener );
+    }
+
+    public removeOutputListener( listener: string ): void
+    {
+        this._outputListeners = this._outputListeners.filter( (l) => l != listener );
     }
 
     public async getInput( mh: Session<any> ): Promise<string>
@@ -195,6 +211,7 @@ export async function sendread( wfid: string, message: Frame ): Promise< string 
     await handle.signal( 'output_listener', {listener_wf: me, target_wf: wfid} );
     await send( wfid, message );
     await wf.condition( () => !waiting );
+
     return rtext;
 }
 
@@ -206,6 +223,7 @@ export async function testSession( first_message: Frame )
     // Start the session
     session.addMessage( {... first_message} );
     session.log( "Session started" );
+
     while( true )
     {
         let input = await session.getInput( session );
