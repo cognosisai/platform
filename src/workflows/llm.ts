@@ -9,6 +9,10 @@ const { nlpcloud_tokenize, tokenize_native } = proxyActivities<
   typeof tokenizer
 >({ startToCloseTimeout: '10 minute' });
 
+export type openai_models = 'gpt-3' | 'text-curie-001';
+export type nlpcloud_models = 'gpt-neox-20b';
+export type llm_models = openai_models | nlpcloud_models;
+
 /**
  * @function nlpcloud_generate
  * @param {string} prompt
@@ -109,7 +113,7 @@ export async function openai_generate(
  * @param {number} maxLength
  * @param {number} temperature
  * @param {string | null} endSequence
- * @param {"gpt-3" | "gpt-neox-20b"} model
+ * @param llm_models model
  * @description A workflow that will generate text using sensible defaults to a sensible default LLM
  */
 export async function minGenerate(
@@ -118,7 +122,7 @@ export async function minGenerate(
   maxLength: number,
   temperature: number,
   endSequence: string | null = null,
-  model: 'gpt-3' | 'gpt-neox-20b' = 'gpt-3'
+  model: llm_models = 'gpt-3'
 ): Promise<string> {
   console.log('In:\n' + prompt);
   if (model == 'gpt-neox-20b') {

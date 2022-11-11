@@ -190,3 +190,19 @@ export async function retryGenerateTextOpenAI(
 
   throw new Error('Failed to generate text with non-temporary error');
 }
+
+export async function keywordKeyphraseExtraction( text: string, modelName: "fast-gpt-j" | "finetuned-gpt-neox-20b" = "fast-gpt-j" ): Promise< string[] > {
+  const response = await axios.post(
+    `https://api.nlpcloud.io/v1/gpu/${modelName}/kw-kp-extraction`,
+    {
+      text: text,
+    },
+    {
+      headers: {
+        Authorization: `Token ${NLPCLOUD_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return [ ...new Set< string >( response.data.keywords_and_keyphrases ) ];
+}
