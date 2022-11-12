@@ -30,7 +30,7 @@ export interface Frame extends FrameInput
 
 type SessionState = 'IDLE' | 'READ_WAIT' | 'MESSAGE_RECEIVED';
 
-class HumanInTheLoopSession< TFrame extends Frame >
+export class HumanInTheLoopSession< TFrame extends Frame >
 {
     private _messages: TFrame[] = [];
     private _state : SessionState;
