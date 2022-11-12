@@ -30,7 +30,7 @@ export interface Frame extends FrameInput
 
 type SessionState = 'IDLE' | 'READ_WAIT' | 'MESSAGE_RECEIVED';
 
-class Session< TFrame extends Frame >
+class HumanInTheLoopSession< TFrame extends Frame >
 {
     private _messages: TFrame[] = [];
     private _state : SessionState;
@@ -142,7 +142,7 @@ class Session< TFrame extends Frame >
         this._outputListeners = this._outputListeners.filter( (l) => l != listener );
     }
 
-    public async getInput( mh: Session<any> ): Promise<string>
+    public async getInput( mh: HumanInTheLoopSession<any> ): Promise<string>
     {
     
         // Wait for the user to respond
@@ -216,7 +216,7 @@ export async function sendread( wfid: string, message: Frame ): Promise< string 
 
 export async function testSession( first_message: Frame )
 {
-    let session = new Session< Frame >();
+    let session = new HumanInTheLoopSession< Frame >();
     session.init();
 
     // Start the session

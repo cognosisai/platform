@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "rootDir": "./src",
-    "outDir": "./lib"
+    "outDir": "./dist"
   },
   "include": ["src/**/*.ts"]
 }

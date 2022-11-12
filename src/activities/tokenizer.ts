@@ -72,3 +72,10 @@ export async function tokenize_native(text: string): Promise<string[]> {
   let tokenizer = new natural.TreebankWordTokenizer();
   return tokenizer.tokenize(text);
 }
+
+
+export async function sentence_tokenizer( text: String ): Promise< string[] > {
+  var natural = require('natural');
+  let tokenizer = new natural.SentenceTokenizer();
+  return tokenizer.tokenize(text);
+}
