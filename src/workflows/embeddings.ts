@@ -58,12 +58,13 @@ export async function storeEmbeddings(
   return `Status: OK. Stored ${sentences.length} embeddings.`;
 }
 
-export async function embeddingsFromTextSearch(
+export async function embeddingsFromTextSearch< T >(
   index: string,
   text: string,
   k: number
-): Promise<any[]> {
-  let v = <any>await embeddings([text]);
+): Promise< {_index: string; _id: string; _score: number; _source: T} []> {
+  let v = await embeddings([text]);
   let vector = v[0][1];
-  return embeddingsSearch(index, vector, k);
+  let results = await embeddingsSearch(index, vector, k);
+  return( results );
 }

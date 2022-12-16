@@ -9,9 +9,8 @@ const { nlpcloud_tokenize, tokenize_native } = proxyActivities<
   typeof tokenizer
 >({ startToCloseTimeout: '10 minute' });
 
-export type openai_models = 'gpt-3' | 'text-curie-001';
-export type nlpcloud_models = 'gpt-neox-20b';
-export type llm_models = openai_models | nlpcloud_models;
+export type llm_models = 'gpt-3' | 'gpt-neox-20b' | 'text-curie-001' | 'finetuned-gpt-neox-20b';
+
 
 /**
  * @function nlpcloud_generate
@@ -95,14 +94,17 @@ export async function openai_generate(
   min_length: number,
   max_length: number,
   temperature: number,
-  top_p: number
+  top_p: number,
+  endSequence: string | null = null,
 ): Promise<string> {
   return await generateTextOpenAI(
     prompt,
     min_length,
     max_length,
     temperature,
-    top_p
+    top_p, 
+    "text-davinci-003",
+    endSequence
   );
 }
 
@@ -113,7 +115,7 @@ export async function openai_generate(
  * @param {number} maxLength
  * @param {number} temperature
  * @param {string | null} endSequence
- * @param llm_models model
+ * @param {"gpt-3" | "gpt-neox-20b"} model
  * @description A workflow that will generate text using sensible defaults to a sensible default LLM
  */
 export async function minGenerate(
@@ -125,7 +127,7 @@ export async function minGenerate(
   model: llm_models = 'gpt-3'
 ): Promise<string> {
   console.log('In:\n' + prompt);
-  if (model == 'gpt-neox-20b') {
+  if (model == 'gpt-neox-20b' || model == 'finetuned-gpt-neox-20b') {
     let completion = await nlpcloud_generate(
       prompt,
       minLength,
@@ -148,13 +150,14 @@ export async function minGenerate(
     );
     console.log('Out:\n' + completion);
     return completion;
-  } else if (model == 'gpt-3') {
+  } else if (model == 'gpt-3' || model == 'text-curie-001') {
     let completion = await openai_generate(
       prompt,
       minLength,
       maxLength,
       temperature,
-      0.9
+      0.9,
+      endSequence
     );
     return completion;
   }

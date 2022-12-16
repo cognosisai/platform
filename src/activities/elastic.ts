@@ -32,7 +32,7 @@ export async function getElasticSearchClient(): Promise<Client> {
 export async function es_index(
   indexname: string,
   doc: any,
-  refresh = true
+  refresh: boolean = true
 ): Promise<void> {
   let client = await getElasticSearchClient();
   try
@@ -77,10 +77,11 @@ export async function es_search<T>(
  * @example <caption> Executes an SQL query against Elasticsearch</caption>
  * await es_query('SELECT * FROM test');
  * @returns {Promise<any>} Promise that resolves to the results of the query
- */export async function es_query<T>(query: string): Promise<any> {
+ */export async function es_query<T>(query: string, params?: any): Promise<any> {
   let client = await getElasticSearchClient();
   const result = await client.sql.query({
-    query: query
+    query: query,
+    params: params,
   });
   client.close();
   const data = result.rows.map((row) => {

@@ -2,14 +2,16 @@ import { proxyActivities } from '@temporalio/workflow';
 import { default as mustache } from 'mustache';
 
 import * as llm from './llm';
+import * as elastic from '../activities/elastic';
 import * as tokenizer from '../activities/tokenizer';
 import * as vector_search from '../activities/vector_search';
 
 import { logger } from './util';
 import { embeddingsFromTextSearch } from './embeddings';
 
-const { tokenize_native, sentence_tokenizer } = proxyActivities< typeof tokenizer>({ startToCloseTimeout: '10 minute' });
+const { tokenize_native } = proxyActivities< typeof tokenizer>({ startToCloseTimeout: '10 minute' });
 const { es_context } = proxyActivities<typeof vector_search>({ startToCloseTimeout: '10 minute' });
+
 
 export async function promptTemplate<T>(
   template: string,
@@ -17,7 +19,8 @@ export async function promptTemplate<T>(
   minLength: number = 1,
   maxLength: number = 50,
   temperature: number = 0.0,
-  model: 'gpt-3' | 'gpt-neox-20b' = 'gpt-neox-20b'
+  model: llm.llm_models  = 'gpt-3',
+  endSequence: string | null = null,
 ): Promise<string> {
   console.log("OK, got into promptTemplate")
   let prompt = mustache.render(template, variables);
@@ -27,6 +30,7 @@ export async function promptTemplate<T>(
     minLength,
     maxLength,
     temperature,
+    endSequence,
     model
   );
   console.log("Got response:\n" + response);
@@ -148,78 +152,6 @@ export async function splitPromptTemplateByLinesOfTokens(
   return Promise.all(allchunks);
 }
 
-
-/* TODO: abstract this and the above function */
-export async function splitPromptTemplateBySentencesOfTokens(
-  data: string,
-  template: string,
-  minLength: number = 1,
-  maxLength: number = 50,
-  temperature: number = 0.0
-): Promise<Array<[string, string, number[]]>> {
-  let template_token_length = await tokenize_native(template).then(
-    (r) => r.length
-  );
-
-  let max_tokens = 1768;
-  let tokens_left = max_tokens - maxLength - template_token_length;
-  let lines: Array<string> = await sentence_tokenizer(data);
-
-  // Loop through lines and add them to a prompt until it fills up max_tokens, and then run it through promptTemplate
-  let current_lines: string = '';
-  let current_lines_tokens = 0;
-  let current_lines_linenos: number[] = [];
-  let chunks = new Array<[string, number[]]>();
-
-  for (let i = 0; i < lines.length; ++i) {
-    let tokens = await tokenize_native(lines[i]);
-    if (current_lines_tokens + tokens.length <= tokens_left) {
-      current_lines_linenos.push(i);
-
-      if (current_lines == '') {
-        current_lines += lines[i];
-      } else {
-        current_lines += '\n' + lines[i];
-      }
-      current_lines_tokens += tokens.length;
-    } else {
-      chunks.push([current_lines, current_lines_linenos]);
-      current_lines_tokens = 0;
-      current_lines = '';
-      current_lines_linenos = [];
-      // i --; // Rerun the line  TODO: fix somehow
-    }
-  }
-
-  if (current_lines.length > 0) {
-    chunks.push([current_lines, [...current_lines_linenos, lines.length]]);
-  }
-
-  console.log(`We are processing ${chunks.length} chunks`);
-
-  /*   let template_token_length = await tokenize_native(template).then(
-     (r) => r.length
-   );
- 
- */
-
-  let allchunks = chunks.map(
-    async (chunk, i, a): Promise<[string, string, number[]]> => {
-      let p = promptTemplate(
-        template,
-        { chunk: chunk[0] },
-        minLength,
-        maxLength,
-        temperature
-      );
-      return [chunk[0], await p, chunk[1]];
-    }
-  );
-
-  return Promise.all(allchunks);
-}
-
-
 function splitUp<T>(arr: T[], size: number): T[][] {
   var newArr = [];
   for (var i = 0; i < arr.length; i += size) {
@@ -292,7 +224,7 @@ export async function questionAndAnswer(
   //let answer = await translateQuerySpaceToAnswerSpace( query );
 
   // Search for the answer within the index from embeddingsFromTextSearch
-  let results = await embeddingsFromTextSearch(
+  let results = await embeddingsFromTextSearch< any >( // TODO: this should not be an any
     index,
     await keywordsFromQuery(query),
     5

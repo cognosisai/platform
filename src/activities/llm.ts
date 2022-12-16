@@ -97,9 +97,10 @@ export async function generateTextOpenAI(
   temperature: number,
   top_p: number,
   model:
-    | 'text-davinci-002'
-    | 'code-davinci-002'
-    | 'text-curie-001' = 'text-davinci-002',
+  | 'text-davinci-003'
+  | 'text-davinci-002'
+  | 'code-davinci-002'
+    | 'text-curie-001' = 'text-davinci-003',
   stopToken: string | string[] | null = null
 ): Promise<string> {
   const config = new Configuration({
@@ -126,8 +127,9 @@ export async function retryGenerateTextOpenAI(
   temperature: number,
   top_p: number,
   model:
-    | 'text-davinci-002'
-    | 'code-davinci-002'
+  | 'text-davinci-003'
+  | 'text-davinci-002'
+  | 'code-davinci-002'
     | 'text-curie-001' = 'text-davinci-002',
   stopToken: string | string[] | null = null,
   delaySeconds = 1
@@ -191,6 +193,7 @@ export async function retryGenerateTextOpenAI(
   throw new Error('Failed to generate text with non-temporary error');
 }
 
+
 export async function keywordKeyphraseExtraction( text: string, modelName: "fast-gpt-j" | "finetuned-gpt-neox-20b" = "fast-gpt-j" ): Promise< string[] > {
   const response = await axios.post(
     `https://api.nlpcloud.io/v1/gpu/${modelName}/kw-kp-extraction`,
@@ -205,4 +208,23 @@ export async function keywordKeyphraseExtraction( text: string, modelName: "fast
     }
   );
   return [ ...new Set< string >( response.data.keywords_and_keyphrases ) ];
+}
+
+export async function Classification( text: string, categories: string[], modelName: "bart-large-mnli-yahoo-answers" | "xlm-roberta-large-xnli" | "fast-gpt-j" | "finetuned-gpt-neox-20b" = "bart-large-mnli-yahoo-answers" ): Promise< {labels: string[]; scores: number[]} > {
+  const response = await axios.post(
+    `https://api.nlpcloud.io/v1/gpu/${modelName}/classification`,
+    {
+      text: text,
+      labels: categories,
+      "multi_class": true,
+    },
+    {
+      headers: {
+        Authorization: `Token ${NLPCLOUD_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  console.log( response.data );
+  return { labels: response.data.labels, scores: response.data.scores };
 }
