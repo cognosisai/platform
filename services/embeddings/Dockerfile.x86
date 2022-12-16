@@ -1,5 +1,5 @@
 FROM tensorflow/tensorflow AS build
-EXPOSE 8080
+EXPOSE 9100
 
 WORKDIR /srv
 COPY ./* /srv/

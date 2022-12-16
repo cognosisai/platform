@@ -8,7 +8,7 @@ import tensorflow_hub as hub
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 app = flask.Flask('encoder')
-
+app.debug = True
 
 @app.route('/', methods=['post'])
 def home():
