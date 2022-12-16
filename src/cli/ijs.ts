@@ -2,12 +2,13 @@ import { Connection, WorkflowClient } from '@temporalio/client';
 import { IJavascript } from '../workflows';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
+import { TEMPORAL_HOST } from '../config';
 
 async function run() {
   // Connect to the default Server location (localhost:7233)
   //const connection = await Connection.connect();
   const connection = await Connection.connect({
-    address: 'prod-cognosisai-temporal.internal:7233'
+    address: TEMPORAL_HOST
   });
 
   // In production, pass options to configure TLS and other settings:
@@ -38,6 +39,8 @@ async function run() {
   });
 
   let result = await handle.result();
+  // Only grab last line.
+  result = result.split('\n').slice(-1)[0];
   console.log(result);
 }
 
