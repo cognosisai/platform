@@ -75,7 +75,5 @@ export async function tokenize_native(text: string): Promise<string[]> {
 
 
 export async function sentence_tokenizer( text: String ): Promise< string[] > {
-  var natural = require('natural');
-  let tokenizer = new natural.SentenceTokenizer();
-  return tokenizer.tokenize(text);
+  throw new Error("Not implemented" );
 }

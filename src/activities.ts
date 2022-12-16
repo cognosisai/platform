@@ -4,3 +4,4 @@ export * from './activities/elastic';
 export * from './activities/mysql';
 export * from './activities/embeddings';
 export * from './activities/util';
+export * from './activities/application/ijavascript';
