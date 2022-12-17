@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git+https://github.com/cognosisai/platform.git"
   },
-  "version": "0.5.11",
+  "version": "0.6.1",
   "private": false,
   "scripts": {
     "build": "tsc --build",
