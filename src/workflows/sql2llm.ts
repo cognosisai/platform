@@ -96,9 +96,20 @@ CSV mode on.
 
 }
 
-export async function SQL2LLM( dbname: string, q: string, context: string | null ): Promise< SQL2LLMOutput >
+export async function SQL2LLM( dbname: string, q: string, context: string | null, natural_language_request: boolean ): Promise< SQL2LLMOutput >
 {
-    console.log( `Got query for ${dbname}: ${q}`)
+    console.log( `Got query for ${dbname}: ${q}`);
+
+    if ( natural_language_request )
+    {
+        let refined_prompt = await workflows.promptTemplate(
+`Natural language: {{{query}}}
+Database: {{{dbname}}}
+nSQL Natural language version: `, {query: q, dbname: dbname}, 10, 256, 1, "finetuned-gpt-neox-20b"
+        );
+        q = refined_prompt;
+    }
+
     let fieldnames_json = '["' + await workflows.promptTemplate(
 `Take the following SQL query: {{{sql}}}
 

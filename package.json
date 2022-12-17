@@ -52,6 +52,7 @@
     "mysql2": "^2.3.3",
     "mysql2-promise": "^0.1.4",
     "nanoid": "3.x",
+    "nargs": "^0.0.2",
     "natural": "^5.2.3",
     "notion-client": "^6.13.4",
     "openai": "^3.0.0",

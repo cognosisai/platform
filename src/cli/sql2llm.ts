@@ -15,6 +15,7 @@ async function run() {
   if ( true ) {
     // load file from disk in argv0
     let text = null;
+    let natural_language_request = true;
     if ( argv.length == 5 )
     {
       const file = fs.readFileSync( argv[4] );
@@ -23,7 +24,7 @@ async function run() {
 
     let handle = await client.start(SQL2LLM, {
       // type inference works! args: [name: string]
-      args: [ argv[2], argv[3], text ],
+      args: [ argv[2], argv[3], text, natural_language_request ],
       taskQueue: 'hello-world',
       // in practice, use a meaningful business id, eg customerId or transactionId
       workflowId: nanoid(),
