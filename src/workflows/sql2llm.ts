@@ -80,14 +80,19 @@ CSV mode on.
     let result = "";
     while( noStopToken == false )
     {
-        let ret = await workflows.promptTemplate( p, objs, 48, 1024, 0, "gpt-3", `${session.dbname}>` );
+        let ret = await workflows.promptTemplate( p + result, objs, 48, 1024, 0, "gpt-3", `${session.dbname}>` );
         ret = ret.replace( /^\s+/, '' );
         ret = ret.replace( /\s+$/, '' );
+
+        if ( ret.endsWith('==========') )
+        {
+            ret = ret.replace( /==========$/, '' );
+        }
+
         if ( ret.length == 0 ) noStopToken = true;
         else {
             console.log( "Trying one more run.")
             result += ret;
-            p += result;
         }
     }
     // Take ret and parse it as CSV. Fix it if necessary.
@@ -125,10 +130,8 @@ nSQL Natural language version: `, {query: q, dbname: dbname}, 10, 256, 1, "finet
 What are the field names in the result set?
 
 JSON list: [ "`, {sql: q}, 5, 128, 0.0, "text-curie-001" );
-    console.log( fieldnames_json );
     let fields = JSON.parse( fieldnames_json );
     let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: context} );
-    console.log( res.result );
     console.log( `${res.result.length} rows returned.\n\n` );
     return( res );
 }

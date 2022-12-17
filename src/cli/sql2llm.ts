@@ -97,6 +97,7 @@ async function run() {
       });
 
       console.log( table.toString() );
+      console.log( `${result.length} rows with ${keys.length} columns returned.` );
     }
   }
 
