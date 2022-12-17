@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import fs from 'fs';
 import { argv } from 'process';
 import * as config from '../config';
+import cli_table from 'cli-table3';
 
 async function run() {
   const connection = await Connection.connect( {address: config.TEMPORAL_HOST} );
@@ -26,8 +27,20 @@ async function run() {
       workflowRunTimeout: '10 minutes',
     });
 
-    console.log( JSON.stringify(await (await handle.result()).result) );
-    return;
+    let result = await (await handle.result()).result;
+    if ( result.length == 0 )
+    {
+      console.log( "No results." );
+      process.exit( 0 );
+    }
+    let keys = Object.keys( result[0] );
+    var table = new cli_table( {head: keys } );
+
+    result.forEach( (v, i, a) => {
+      table.push( <any> Object.values(v) );
+    });
+
+    console.log( table.toString() );
   }
 
 

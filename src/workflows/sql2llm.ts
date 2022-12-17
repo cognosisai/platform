@@ -91,6 +91,7 @@ CSV mode on.
 
 export async function SQL2LLM( dbname: string, q: string ): Promise< SQL2LLMOutput >
 {
+    console.log( `Got query for ${dbname}: ${q}`)
     let fieldnames_json = '["' + await workflows.promptTemplate(
 `Take the following SQL query: {{{sql}}}
 
