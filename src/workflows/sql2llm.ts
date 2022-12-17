@@ -74,15 +74,24 @@ export async function SQL2LLM_wf( input: SQL2LLMInput, session: TSession ): Prom
 CSV mode on.
 {{{history}}}`;
 
-    let ret = await workflows.promptTemplate( p, {dbname: session.dbname, history: history, context: context}, 48, 1024, 0, "gpt-3", `${session.dbname}>` );
+    let objs = {dbname: session.dbname, history: history, context: context};
 
-    // Strip ret of leading whitespace and newlines
-    ret = ret.replace( /^\s+/, '' );
-    // Strip ret of trailing whitespace and newlines
-    ret = ret.replace( /\s+$/, '' );
-
+    let noStopToken = false;
+    let result = "";
+    while( noStopToken == false )
+    {
+        let ret = await workflows.promptTemplate( p, objs, 48, 1024, 0, "gpt-3", `${session.dbname}>` );
+        ret = ret.replace( /^\s+/, '' );
+        ret = ret.replace( /\s+$/, '' );
+        if ( ret.length == 0 ) noStopToken = true;
+        else {
+            console.log( "Trying one more run.")
+            result += ret;
+            p += result;
+        }
+    }
     // Take ret and parse it as CSV. Fix it if necessary.
-    let parsed = await parse_and_fix_csv( columns + "\n" + ret );
+    let parsed = await parse_and_fix_csv( columns + "\n" + result );
 
     return  {
         query: input.query, 

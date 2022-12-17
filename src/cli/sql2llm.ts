@@ -65,7 +65,7 @@ async function run() {
       taskQueue: 'hello-world',
       // in practice, use a meaningful business id, eg customerId or transactionId
       workflowId: nanoid(),
-      workflowRunTimeout: '10 minutes',
+      workflowRunTimeout: '30 seconds',
     });
 
     let result = await (await handle.result()).result;
@@ -90,7 +90,7 @@ async function run() {
       }
     } else {
       let keys = Object.keys( result[0] );
-      var table = new cli_table( {head: keys } );
+      var table = new cli_table( {head: keys} );
 
       result.forEach( (v, i, a) => {
         table.push( <any> Object.values(v) );
