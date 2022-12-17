@@ -68,7 +68,8 @@ async function run() {
       workflowRunTimeout: '30 seconds',
     });
 
-    let result = await (await handle.result()).result;
+    let output = await handle.result();
+    let result = output.result;
     if ( result.length == 0 )
     {
       console.log( "No results." );
@@ -96,6 +97,8 @@ async function run() {
         table.push( <any> Object.values(v) );
       });
 
+      if ( output.nSQL_query )
+        console.log( `Query: ${output.nSQL_query}` );
       console.log( table.toString() );
       console.log( `${result.length} rows with ${keys.length} columns returned.` );
     }

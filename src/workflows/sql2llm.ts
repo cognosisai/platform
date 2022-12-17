@@ -20,6 +20,7 @@ export interface SQL2LLMOutput extends Frame {
     result: any[];
     status: 200 | 500;
     error?: string;
+    nSQL_query?: string;
 }
 
 class TSession extends HumanInTheLoopSession< SQL2LLMInput > {
@@ -113,14 +114,15 @@ CSV mode on.
 export async function SQL2LLM( dbname: string, q: string, context: string | null, natural_language_request: boolean ): Promise< SQL2LLMOutput >
 {
     console.log( `Got query for ${dbname}: ${q}`);
-
+    let refined_prompt: string = "";
     if ( natural_language_request )
     {
-        let refined_prompt = await workflows.promptTemplate(
+        refined_prompt = await workflows.promptTemplate(
 `Natural language: {{{query}}}
 Database: {{{dbname}}}
 nSQL Natural language version: `, {query: q, dbname: dbname}, 10, 256, 1, "finetuned-gpt-neox-20b"
         );
+        refined_prompt = refined_prompt.replace( /^\s+/, '' ).replace( /\s+$/, '' );
         q = refined_prompt;
     }
 
@@ -132,7 +134,8 @@ What are the field names in the result set?
 JSON list: [ "`, {sql: q}, 5, 128, 0.0, "text-curie-001" );
     let fields = JSON.parse( fieldnames_json );
     let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: context} );
+    if ( refined_prompt.length > 0 )
+        res.nSQL_query = refined_prompt;
     console.log( `${res.result.length} rows returned.\n\n` );
     return( res );
 }
-
