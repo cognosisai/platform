@@ -23,7 +23,7 @@ export async function sql2llm_session_multiplexer( message: wf.SQL2LLMInput ): P
     {
         console.log(`Starting wfid ${wfid}`);
         handle = await client.start(wf.SQL2LLM_session, {
-            args: [message.dbname, message.fields],
+            args: [message.dbname, message.fields, message.context],
             taskQueue: 'hello-world',
             workflowId: wfid,
             workflowRunTimeout: '10 minutes',

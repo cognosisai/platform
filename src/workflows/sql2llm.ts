@@ -10,6 +10,7 @@ export interface SQL2LLMInput extends Frame {
     dbname: string;
     query: string;
     fields: string[];
+    context: string | null;
     result?: SQL2LLMOutput;
 }
 
@@ -32,7 +33,7 @@ class TSession extends HumanInTheLoopSession< SQL2LLMInput > {
     }
 }
 
-export async function SQL2LLM_session( dbname: string, fields: string[] ): Promise< void >
+export async function SQL2LLM_session( dbname: string, fields: string[], context: string | null ): Promise< void >
 {
     let session = new TSession( dbname, fields );
     session.init();
@@ -40,7 +41,7 @@ export async function SQL2LLM_session( dbname: string, fields: string[] ): Promi
     while( true )
     {
         let input = await session.getInput( session );
-        session.addMessage( {logs: [], query: input, text: input, ts: new Date(), fields: fields, dbname: dbname} );
+        session.addMessage( {logs: [], query: input, text: input, ts: new Date(), fields: fields, dbname: dbname, context: context} );
         session.log( "User input [dialog]: " + input );
 
         let ret = await SQL2LLM_wf( session.messages[session.messages.length-1], session );
@@ -57,9 +58,15 @@ export async function SQL2LLM_wf( input: SQL2LLMInput, session: TSession ): Prom
     let columns = fields.join( ',' );
     let p = '';
 
+    let context = '';
+    if ( input.context )
+    {
+        context = `==================\nData:\n${input.context}\n==================\n\n`;
+    }
+
     session.messages.reverse();
     let history = session.messages.reverse().map( (m) => {
-        return `${session.dbname}> ${m.query}\nESCAPED CSV RESULT\n==========\n${columns}\n`
+        return `${context}${session.dbname}> ${m.query}\nESCAPED CSV RESULT\n==========\n${columns}\n`
     });
     session.messages.reverse();
 
@@ -67,7 +74,7 @@ export async function SQL2LLM_wf( input: SQL2LLMInput, session: TSession ): Prom
 CSV mode on.
 {{{history}}}`;
 
-    let ret = await workflows.promptTemplate( p, {dbname: session.dbname, history: history}, 48, 1024, 0, "gpt-3", `${session.dbname}>` );
+    let ret = await workflows.promptTemplate( p, {dbname: session.dbname, history: history, context: context}, 48, 1024, 0, "gpt-3", `${session.dbname}>` );
 
     // Strip ret of leading whitespace and newlines
     ret = ret.replace( /^\s+/, '' );
@@ -89,7 +96,7 @@ CSV mode on.
 
 }
 
-export async function SQL2LLM( dbname: string, q: string ): Promise< SQL2LLMOutput >
+export async function SQL2LLM( dbname: string, q: string, context: string | null ): Promise< SQL2LLMOutput >
 {
     console.log( `Got query for ${dbname}: ${q}`)
     let fieldnames_json = '["' + await workflows.promptTemplate(
@@ -100,7 +107,7 @@ What are the field names in the result set?
 JSON list: [ "`, {sql: q}, 5, 128, 0.0, "text-curie-001" );
     console.log( fieldnames_json );
     let fields = JSON.parse( fieldnames_json );
-    let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: []} );
+    let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: context} );
     console.log( res.result );
     console.log( `${res.result.length} rows returned.\n\n` );
     return( res );

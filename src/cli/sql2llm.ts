@@ -14,13 +14,16 @@ async function run() {
 
   if ( true ) {
     // load file from disk in argv0
-//    const file = fs.readFileSync( argv[2] );
-//    const text = file.toString();
-    
+    let text = null;
+    if ( argv.length == 5 )
+    {
+      const file = fs.readFileSync( argv[4] );
+      text = file.toString();
+    }
 
     let handle = await client.start(SQL2LLM, {
       // type inference works! args: [name: string]
-      args: [ argv[2], argv[3] ],
+      args: [ argv[2], argv[3], text ],
       taskQueue: 'hello-world',
       // in practice, use a meaningful business id, eg customerId or transactionId
       workflowId: nanoid(),
