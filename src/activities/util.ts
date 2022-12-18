@@ -128,7 +128,7 @@ const obj =`;
             args: [p, {text: text, error: e.toString(), id: nanoid()}, 128, 2048, 1.0, "finetuned-gpt-neox-20b"],
             taskQueue: 'hello-world',
             workflowId: nanoid(),
-            workflowRunTimeout: '10 minutes',
+            workflowRunTimeout: '1 minutes',
         });
 
         let fixed = await handle.result();
@@ -197,8 +197,7 @@ export async function csv_parser_action( csv: string ): Promise< any[] >
     {
         csv = '"' + csv;
     }
-    
-    
+
     // Wrap below in a Promise
     let p = new Promise< any[] >( (resolve, reject) => {
         csv_parse.parse( csv, {columns: true, skip_empty_lines: true, relaxQuotes: true, relax_column_count: true}, (err, records) => {
