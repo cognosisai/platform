@@ -3,8 +3,10 @@ import { proxyActivities, sleep } from '@temporalio/workflow';
 import * as activities from '../activities';
 import { Frame, HumanInTheLoopSession } from '../workflows/session';
 import * as sql2llm from '../activities/sql2llm';
+import { resourceLimits } from 'node:worker_threads';
+import { actionLogger } from '../activities';
 
-const { sql2llm_session_multiplexer, parse_and_fix_csv } = proxyActivities< typeof activities >({ startToCloseTimeout: '10 minute' });
+const { tokenize_native, sql2llm_session_multiplexer, parse_and_fix_csv } = proxyActivities< typeof activities >({ startToCloseTimeout: '10 minute' });
 
 export interface SQL2LLMInput extends Frame {
     dbname: string;
@@ -133,9 +135,50 @@ What are the field names in the result set?
 
 JSON list: [ "`, {sql: q}, 5, 128, 0.0, "text-curie-001" );
     let fields = JSON.parse( fieldnames_json );
-    let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: context} );
-    if ( refined_prompt.length > 0 )
-        res.nSQL_query = refined_prompt;
-    console.log( `${res.result.length} rows returned.\n\n` );
-    return( res );
+
+    if ( context )
+    {
+        let context_tokens: string[] = await tokenize_native( context );
+        let context_tokensChunks: string[][] = [];
+        let chunkSize = 1024;
+        for ( let i = 0; i < context_tokens.length; i += chunkSize )
+        {
+            context_tokensChunks.push( context_tokens.slice(i, i + chunkSize) );
+        }
+
+        let results: SQL2LLMOutput[] = [];
+        if ( context_tokensChunks.length > 1 )
+        {
+            let promises = context_tokensChunks.map( async (chunk) => {
+                console.log( `Context chunk: ${chunk.length} tokens`);
+                let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: chunk.join(' ')} );
+                // Add result to the results array.
+                res.result.forEach( (r) => { results.push(r) } );
+            });
+            await Promise.all( promises );
+
+            // Remove duplicates.
+            let uniqueResults = Array.from(new Set(results.map( r => JSON.stringify(r) )));
+            // Convert back to object.
+            uniqueResults = uniqueResults.map( r => JSON.parse(r) );
+            console.log( `${results.length} rows returned.\n\n` );
+            return( {fields: fields, logs: [], query: q, result: uniqueResults, status: 200, text: q, ts: new Date()} );
+        }
+        else
+        {
+            let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: context} );
+            if ( refined_prompt.length > 0 )
+                res.nSQL_query = refined_prompt;
+            console.log( `${res.result.length} rows returned.\n\n` );
+            return( res );
+        }
+    }
+    else
+    {
+        let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: context} );
+        if ( refined_prompt.length > 0 )
+            res.nSQL_query = refined_prompt;
+        console.log( `${res.result.length} rows returned.\n\n` );
+        return( res );
+    }
 }
