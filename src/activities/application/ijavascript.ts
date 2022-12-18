@@ -70,7 +70,7 @@ net
         socket.end();
       });
   })
-  .listen(5001);
+  .listen(5002);
 
 /* Class which wraps net.connect, sockets with promises */
 class Socket {
