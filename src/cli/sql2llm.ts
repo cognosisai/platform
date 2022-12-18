@@ -9,7 +9,7 @@ import cli_table from 'cli-table3';
 const yargs = require('yargs');
 
 const options = yargs
-    .usage('Usage: sql2llm -d <database name> [-n] -q <query> [ -f <file>] [-j] [-c]')
+    .usage('Usage: sql2llm -d <database name> [-n] -q <query> [ -f <file>] [-j] [-c] [-t <timeout>]')
     .option('d', {
         alias: 'database-name',
         description: 'Name of the database to query',
@@ -42,6 +42,11 @@ const options = yargs
         description: 'Return results as CSV instead of displaying with cli-table3',
         type: 'boolean'
     })
+    .option('t', {
+        alias: 'timeout',
+        description: 'Timeout for workflow',
+        type: 'string'
+    })
     .argv;
 
 async function run() {
@@ -55,8 +60,12 @@ async function run() {
     let text = null;
     if ( options.file )
     {
-      const file = fs.readFileSync( options.file );
-      text = file.toString();
+      if (options.file === '-') {
+        text = fs.readFileSync(0).toString();
+      } else {
+        const file = fs.readFileSync( options.file );
+        text = file.toString();
+      }
     }
 
     let handle = await client.start(SQL2LLM, {
@@ -65,7 +74,7 @@ async function run() {
       taskQueue: 'hello-world',
       // in practice, use a meaningful business id, eg customerId or transactionId
       workflowId: nanoid(),
-      workflowRunTimeout: '30 seconds',
+      workflowRunTimeout: options.timeout || '30 seconds',
     });
 
     let output = await handle.result();
