@@ -7,3 +7,4 @@ export * from './activities/util';
 export * from './activities/application/ijavascript';
 export * from './activities/sql2llm';
 export * from './activities/vector_search';
+export * from './activities/application/codegrunt';
