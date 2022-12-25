@@ -14,7 +14,6 @@ const options = yargs
         alias: 'database-name',
         description: 'Name of the database to query',
         type: 'string',
-        demandOption: true
     })
     .option('n', {
         alias: 'natural-language-request',

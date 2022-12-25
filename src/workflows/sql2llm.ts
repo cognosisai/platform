@@ -95,11 +95,24 @@ CSV mode on.
         if ( ret.length == 0 ) noStopToken = true;
         else {
             console.log( "Trying one more run.")
+            if ( result.endsWith('"') && ret.startsWith('"') )
+            {
+                result += "\n";
+            }
             result += ret;
         }
     }
     // Take ret and parse it as CSV. Fix it if necessary.
-    let parsed = await parse_and_fix_csv( columns + "\n" + result );
+    let parsed: any[] = await parse_and_fix_csv( columns + "\n" + result );
+    // Walk through parsed, and remove the leading and trailing whitespace as well as leading and trailing " columns from all rows
+    for( let i = 0; i < parsed.length; i++ )
+    {
+        for( let j = 0; j < parsed[i].length; j++ )
+        {
+            parsed[i][j] = parsed[i][j].replace( /^\s+/, '' ).replace( /\s+$/, '' ).replace( /^'/, '' ).replace( /'$/, '' ).replace( /^"/, '' ).replace( /"$/, '' );
+        }
+    }
+
 
     return  {
         query: input.query, 
@@ -113,7 +126,7 @@ CSV mode on.
 
 }
 
-export async function SQL2LLM( dbname: string, q: string, context: string | null, natural_language_request: boolean ): Promise< SQL2LLMOutput >
+export async function SQL2LLM( dbname: string | null | undefined, q: string, context: string | null, natural_language_request: boolean ): Promise< SQL2LLMOutput >
 {
     console.log( `Got query for ${dbname}: ${q}`);
     let refined_prompt: string = "";
@@ -125,7 +138,7 @@ Database: {{{dbname}}}
 nSQL Natural language version: `, {query: q, dbname: dbname}, 10, 256, 1, "finetuned-gpt-neox-20b"
         );
         refined_prompt = refined_prompt.replace( /^\s+/, '' ).replace( /\s+$/, '' );
-        q = refined_prompt;
+        q = refined_prompt.replace( /[\r\n]+$/, '' );
     }
 
     let fieldnames_json = '["' + await workflows.promptTemplate(
@@ -136,11 +149,19 @@ What are the field names in the result set?
 JSON list: [ "`, {sql: q}, 5, 128, 0.0, "text-curie-001" );
     let fields = JSON.parse( fieldnames_json );
 
+    // If dbname is null, let's prompt text-curie-001 for it.
+    if ( dbname == null )
+    {
+        dbname = (await workflows.promptTemplate(
+`Take the following SQL query: {{{sql}}}
+Database:`, {sql: q}, 1, 32, 0.0, "text-curie-001" )).replace( /^\s+/, '' ).replace( /\s+$/, '' );
+    }
+
     if ( context )
     {
         let context_tokens: string[] = await tokenize_native( context );
         let context_tokensChunks: string[][] = [];
-        let chunkSize = 1024;
+        let chunkSize = 2048;
         for ( let i = 0; i < context_tokens.length; i += chunkSize )
         {
             context_tokensChunks.push( context_tokens.slice(i, i + chunkSize) );
@@ -151,7 +172,7 @@ JSON list: [ "`, {sql: q}, 5, 128, 0.0, "text-curie-001" );
         {
             let promises = context_tokensChunks.map( async (chunk) => {
                 console.log( `Context chunk: ${chunk.length} tokens`);
-                let res = await sql2llm_session_multiplexer( {dbname: dbname, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: chunk.join(' ')} );
+                let res = await sql2llm_session_multiplexer( {dbname: dbname!, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: chunk.join(' ')} );
                 // Add result to the results array.
                 res.result.forEach( (r) => { results.push(r) } );
             });
