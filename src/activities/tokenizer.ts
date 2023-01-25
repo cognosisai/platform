@@ -73,6 +73,17 @@ export async function tokenize_native(text: string): Promise<string[]> {
   return tokenizer.tokenize(text);
 }
 
+export async function gpt3_tokenize(text: string): Promise<number[]> {
+  let tokenizer = require('gpt-3-encoder');
+  let encoded_tokens: number[] = tokenizer.encode(text);
+  return encoded_tokens;
+}
+
+export async function gpt3_detokenize(tokens: number[]): Promise<string> {
+  let tokenizer = require('gpt-3-encoder');
+  let text = tokenizer.decode(tokens);
+  return text;
+}
 
 export async function sentence_tokenizer( text: String ): Promise< string[] > {
   throw new Error("Not implemented" );
