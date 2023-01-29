@@ -6,6 +6,10 @@ The Cognosis AI Platform contains an application server and all of the
 infrastructure you need to build Large Language Model applications with,
 batteries included!
 
+##
+
+[Join our Slack!](https://slack.com/get-started?sig=enQtNDczNzkwODAxODM4NC1iMzAzNTA4MmE1Zjk1NDQyMTk5ZmZhMjFiMzMyMzJjNGMxZGUyMDBjYjA4YjcxYjJjOTRmNjRlNmY4MzU2OTU0&invite_id=I04MPSQ0JBA&redir=%2Fshare%2FenQtNDczNzkwODAxODM4NC1iMzAzNTA4MmE1Zjk1NDQyMTk5ZmZhMjFiMzMyMzJjNGMxZGUyMDBjYjA4YjcxYjJjOTRmNjRlNmY4MzU2OTU0#/sharedinvite)
+
 ## Quickstart
 
 Requirements:
