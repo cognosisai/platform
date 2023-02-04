@@ -6,7 +6,7 @@ import * as sql2llm from '../activities/sql2llm';
 import { resourceLimits } from 'node:worker_threads';
 import { actionLogger } from '../activities';
 
-const { gpt3_detokenize, gpt3_tokenize, sql2llm_session_multiplexer, parse_and_fix_csv } = proxyActivities< typeof activities >({ startToCloseTimeout: '10 minute' });
+const { split_text_by_tokens, sql2llm_session_multiplexer, parse_and_fix_csv } = proxyActivities< typeof activities >({ startToCloseTimeout: '10 minute' });
 
 export interface SQL2LLMInput extends Frame {
     dbname: string;
@@ -159,25 +159,12 @@ Database:`, {sql: q}, 1, 32, 0.0, "text-curie-001" )).replace( /^\s+/, '' ).repl
 
     if ( context )
     {
-        // TODO chunking algo that can optionally overlap chunks so we don't lose context when splitting
-        let context_tokens: number[] = await gpt3_tokenize( context );
-
-        console.log(`Tokenized ${context.length} characters into ${context_tokens.length} tokens.`);
-        let context_chunks: string[] = [];
-        let chunkSize = 2048;
-        for ( let i = 0; i < context_tokens.length; i += chunkSize )
-        {
-            let context_tokens_slice: number[] = context_tokens.slice(i, i + chunkSize);
-            let context_slice = await gpt3_detokenize( context_tokens_slice );
-            context_chunks.push( context_slice );
-        }
+        let context_chunks: string[] = await split_text_by_tokens( context, 2048 );
 
         let results: SQL2LLMOutput[] = [];
         if ( context_chunks.length > 1 )
         {
             let promises = context_chunks.map( async (chunk) => {
-                let chunk_tokens: number[] = await gpt3_tokenize( chunk );
-                console.log( `Context chunk: ${chunk.length} characters, ${chunk_tokens.length} tokens.}`);
                 let res = await sql2llm_session_multiplexer( {dbname: dbname!, fields: fields, query: q, text: q, ts: new Date(), logs: [], context: chunk} );
                 
                 // Add result to the results array.
